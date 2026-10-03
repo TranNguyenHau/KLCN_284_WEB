@@ -1,0 +1,252 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Three-layer token architecture: raw palette values live in the comments below,
+ * semantic tokens are the custom properties, and components only ever reference
+ * the semantic tokens - never raw hex.
+ *
+ * Dark palette (default): bg #0F172A, surface #1E293B, up #10B981, down #EF4444.
+ */
+
+/* Light theme */
+:root {
+  --bg: 241 245 249;
+  --surface: 255 255 255;
+  --raised: 241 245 249;
+  --line: 226 232 240;
+  --ink: 15 23 42;
+  --muted: 100 116 139;
+  --up: 5 150 105;
+  --down: 220 38 38;
+  --forecast: 99 102 241;
+  --accent: 2 132 199;
+  --warn: 180 83 9;
+  --glass-tint: 255 255 255;
+  --glass-inset: 0.7;
+  --shadow: 15 23 42;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: 15 23 42;
+  --surface: 30 41 59;
+  --raised: 38 52 74;
+  --line: 51 65 85;
+  --ink: 226 232 240;
+  --muted: 148 163 184;
+  --up: 16 185 129;
+  --down: 239 68 68;
+  --forecast: 129 140 248;
+  --accent: 56 189 248;
+  --warn: 251 191 36;
+  --glass-tint: 148 163 184;
+  --glass-inset: 0.07;
+  --shadow: 2 6 23;
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-bg text-ink font-sans antialiased;
+  font-variant-numeric: tabular-nums;
+}
+
+/*
+ * Ambient tint so the translucent glass layers have something to pick up.
+ *
+ * This used to be a `background-attachment: fixed` gradient on body, which forces the
+ * browser to repaint the whole viewport on every scroll frame - next to the sticky
+ * backdrop-blur layers that made scrolling and route changes feel frozen on Windows
+ * Chrome. A fixed, composited element is far cheaper.
+ */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1100px 560px at 10% -12%, rgb(var(--accent) / 0.16), transparent 62%),
+    radial-gradient(900px 520px at 100% -4%, rgb(var(--forecast) / 0.14), transparent 58%),
+    radial-gradient(1000px 620px at 85% 112%, rgb(var(--up) / 0.08), transparent 60%);
+}
+
+:focus-visible {
+  outline: 2px solid rgb(var(--accent));
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(var(--line)) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgb(var(--line));
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--muted) / 0.6);
+}
+
+@layer components {
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-lg border border-line bg-surface px-3 py-1.5 text-sm font-medium text-ink transition-all duration-150 hover:border-accent/50 hover:bg-raised active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
+  }
+  .btn-primary {
+    @apply border-accent bg-accent text-white hover:bg-accent hover:opacity-90 dark:text-bg;
+    box-shadow: 0 8px 24px -12px rgb(var(--accent) / 0.8);
+  }
+  .btn-ghost {
+    @apply border-transparent bg-transparent hover:border-line hover:bg-raised;
+  }
+  .btn-icon {
+    @apply px-2 py-2;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line bg-surface px-3 py-1.5 text-sm text-ink transition-colors placeholder:text-muted focus:border-accent/60 focus:outline-none;
+  }
+  .th {
+    @apply px-3 py-2 text-left text-xs font-medium uppercase tracking-wide text-muted;
+  }
+  .td {
+    @apply px-3 py-2 text-sm;
+  }
+  .card {
+    @apply overflow-hidden rounded-xl border border-line/80 bg-surface;
+    box-shadow: inset 0 1px 0 rgb(var(--glass-tint) / var(--glass-inset)), 0 18px 40px -32px rgb(var(--shadow) / 0.9);
+  }
+  .card-hover {
+    @apply transition-all duration-200;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    border-color: rgb(var(--accent) / 0.45);
+    box-shadow: 0 24px 48px -28px rgb(var(--shadow) / 0.95);
+  }
+  /* Glassmorphism surface for floating cards and the Alpha AI widget. */
+  .glass {
+    background: linear-gradient(158deg, rgb(var(--surface) / 0.74), rgb(var(--surface) / 0.5));
+    backdrop-filter: blur(18px) saturate(160%);
+    -webkit-backdrop-filter: blur(18px) saturate(160%);
+    border: 1px solid rgb(var(--line) / 0.7);
+    box-shadow:
+      inset 0 1px 0 rgb(var(--glass-tint) / var(--glass-inset)),
+      0 24px 60px -30px rgb(var(--shadow) / 0.95);
+  }
+  .skeleton {
+    @apply relative overflow-hidden rounded-md;
+    background: rgb(var(--line) / 0.55);
+  }
+  .skeleton::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgb(var(--ink) / 0.09), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 1.6s ease-in-out infinite;
+  }
+  .chip {
+    @apply inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 py-1 text-xs font-medium;
+  }
+  /*
+   * Number cells in the stat grids. Long amounts ("500.000.000 VND") must wrap inside
+   * the card instead of spilling out of it, and the tabular glyphs keep columns aligned.
+   */
+  .stat-label {
+    @apply min-w-0 text-xs leading-snug text-muted;
+  }
+  .stat-value {
+    @apply mt-0.5 break-words text-base font-semibold leading-tight tabular-nums;
+  }
+}
+
+@layer utilities {
+  .live-dot {
+    animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  }
+  .glow-forecast {
+    filter: drop-shadow(0 0 6px rgb(var(--forecast) / 0.6));
+  }
+  .glow-up {
+    filter: drop-shadow(0 0 6px rgb(var(--up) / 0.5));
+  }
+  .fade-in-up {
+    animation: fade-in-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .ticker-track {
+    display: flex;
+    width: max-content;
+    animation: ticker 45s linear infinite;
+  }
+  .ticker-mask:hover .ticker-track {
+    animation-play-state: paused;
+  }
+  .text-glow {
+    text-shadow: 0 0 18px rgb(var(--accent) / 0.45);
+  }
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgb(var(--up) / 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgb(var(--up) / 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgb(var(--up) / 0);
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ticker {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

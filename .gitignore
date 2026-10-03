@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.env
+__pycache__/
+.venv/
+ml-service/models/*.keras
+ml-service/models/*.h5
+ml-service/preprocessing/*.pkl

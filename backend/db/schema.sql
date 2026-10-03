@@ -1,0 +1,11 @@
+CREATE TABLE users (id SERIAL PRIMARY KEY, email TEXT UNIQUE NOT NULL, name TEXT, password_hash TEXT, created_at TIMESTAMPTZ DEFAULT now());
+CREATE TABLE stocks (symbol TEXT PRIMARY KEY, name TEXT NOT NULL, sector TEXT, exchange TEXT);
+CREATE TABLE historical_prices (symbol TEXT REFERENCES stocks(symbol), date DATE NOT NULL, open NUMERIC, high NUMERIC, low NUMERIC, close NUMERIC NOT NULL, volume BIGINT, PRIMARY KEY (symbol, date));
+CREATE TABLE predictions (id SERIAL PRIMARY KEY, symbol TEXT REFERENCES stocks(symbol), model_name TEXT, generated_at TIMESTAMPTZ DEFAULT now(), target_date DATE NOT NULL, predicted_price NUMERIC NOT NULL, lower NUMERIC, upper NUMERIC);
+CREATE TABLE watchlists (user_id INT REFERENCES users(id), symbol TEXT REFERENCES stocks(symbol), added_at TIMESTAMPTZ DEFAULT now(), PRIMARY KEY (user_id, symbol));
+CREATE TABLE portfolios (id SERIAL PRIMARY KEY, user_id INT REFERENCES users(id), name TEXT, cash NUMERIC NOT NULL DEFAULT 0, simulated BOOLEAN NOT NULL DEFAULT TRUE);
+CREATE TABLE portfolio_transactions (id SERIAL PRIMARY KEY, portfolio_id INT REFERENCES portfolios(id), symbol TEXT REFERENCES stocks(symbol), side TEXT CHECK (side IN ('buy','sell')), quantity INT NOT NULL, price NUMERIC NOT NULL, fee NUMERIC DEFAULT 0, created_at TIMESTAMPTZ DEFAULT now());
+CREATE TABLE alerts (id SERIAL PRIMARY KEY, user_id INT REFERENCES users(id), symbol TEXT REFERENCES stocks(symbol), condition TEXT CHECK (condition IN ('above','below')), price NUMERIC NOT NULL, created_at TIMESTAMPTZ DEFAULT now(), triggered_at TIMESTAMPTZ);
+CREATE TABLE news (id SERIAL PRIMARY KEY, title TEXT NOT NULL, summary TEXT, source TEXT, url TEXT, published_at TIMESTAMPTZ, sentiment_score NUMERIC, sentiment_label TEXT);
+CREATE TABLE news_symbols (news_id INT REFERENCES news(id), symbol TEXT REFERENCES stocks(symbol), PRIMARY KEY (news_id, symbol));
+CREATE TABLE chat_messages (id SERIAL PRIMARY KEY, user_id INT REFERENCES users(id), role TEXT CHECK (role IN ('user','assistant')), content TEXT NOT NULL, tool_calls JSONB, created_at TIMESTAMPTZ DEFAULT now());

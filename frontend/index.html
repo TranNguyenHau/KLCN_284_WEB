@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta name="theme-color" content="#0F172A" />
+    <title>Alpha Markets</title>
+    <script>
+      // Applied before paint so the terminal look and language never flash.
+      (function () {
+        try {
+          if ((localStorage.getItem('theme') || 'dark') !== 'dark') document.documentElement.classList.remove('dark');
+          var lang = localStorage.getItem('alpha.lang');
+          document.documentElement.lang = lang === 'vi' || lang === 'en' ? lang : (navigator.language || '').toLowerCase().startsWith('vi') ? 'vi' : 'en';
+        } catch (error) {
+          /* storage can be blocked in private modes */
+        }
+      })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
