@@ -1,10 +1,12 @@
 import { StrictMode } from 'react';
 import { describe, expect, it } from 'vitest';
-import { act, renderHook, waitFor } from '@testing-library/react';
+import { act, renderHook, screen, waitFor } from '@testing-library/react';
+import { useLocation } from 'react-router-dom';
+import { AxiosError } from 'axios';
 import {
   AUTH_UNAUTHORIZED_EVENT, AuthProvider, createAuthClient, toAuthError, useAuth
 } from './AuthContext.jsx';
-import { ADMIN, USER, fakeClient, httpError, networkError, ok } from '../test/authTestUtils.jsx';
+import { ADMIN, USER, fakeClient, httpError, networkError, ok, renderWithAuth } from '../test/authTestUtils.jsx';
 
 /** Run an async action inside act(), swallow its rejection and return it, so state updates are flushed. */
 const rejection = async (fn) => {
@@ -139,6 +141,60 @@ describe('AuthProvider under React.StrictMode (how main.jsx runs it in dev)', ()
     await waitFor(() => expect(result.current.status).toBe('authenticated'));
     await act(() => result.current.logout());
     expect(result.current.status).toBe('anonymous');
+  });
+});
+
+describe('AuthProvider and the unauthorized event', () => {
+  it('the event arriving while already anonymous changes nothing but a re-render: no navigation, no new request', async () => {
+    const trail = [];
+    function Probe() {
+      const auth = useAuth();
+      const location = useLocation();
+      trail.push({ status: auth.status, user: auth.user, path: location.pathname, key: location.key });
+      return <p data-testid="probe">{auth.status} {location.pathname}</p>;
+    }
+    const client = fakeClient({ 'GET /auth/me': httpError(401) });
+    renderWithAuth(<Probe />, { client, route: '/login' });
+    await waitFor(() => expect(screen.getByTestId('probe')).toHaveTextContent('anonymous /login'));
+    const before = trail.at(-1);
+    const rendersBefore = trail.length;
+    const requestsBefore = client.calls.length;
+
+    act(() => { window.dispatchEvent(new Event(AUTH_UNAUTHORIZED_EVENT)); });
+
+    expect(screen.getByTestId('probe')).toHaveTextContent('anonymous /login');
+    for (const entry of trail.slice(rendersBefore)) expect(entry).toEqual(before); // same status, user, path and history key
+    expect(trail.at(-1)).toEqual(before);
+    expect(client.calls).toHaveLength(requestsBefore); // no new /auth/me, no login, no logout
+    expect(client.calls.every((call) => call.method === 'GET' && call.url === '/auth/me')).toBe(true);
+  });
+
+  it('login 401 through AuthContext is a credential error: it does not emit the unauthorized event', async () => {
+    const seen = [];
+    const onEvent = () => seen.push('unauthorized');
+    window.addEventListener(AUTH_UNAUTHORIZED_EVENT, onEvent);
+    try {
+      const client = createAuthClient(); // the real client AuthProvider builds by default (no api.js, no interceptors)
+      const hits = [];
+      client.defaults.adapter = async (config) => {
+        hits.push(`${config.method} ${config.url}`);
+        throw new AxiosError('Request failed with status code 401', 'ERR_BAD_REQUEST', config, {}, {
+          status: 401, statusText: '401', headers: {}, config, data: { data: null, error: 'x' }
+        });
+      };
+      const wrapper = ({ children }) => <AuthProvider client={client}>{children}</AuthProvider>;
+      const { result } = renderHook(() => useAuth(), { wrapper });
+      await waitFor(() => expect(result.current.status).toBe('anonymous')); // the /auth/me bootstrap is a 401 as well
+
+      const error = await rejection(() => result.current.login('staff', 'wrong-password'));
+
+      expect(error).toMatchObject({ status: 401, code: 'ERR_BAD_REQUEST' });
+      expect(result.current.status).toBe('anonymous');
+      expect(hits).toEqual(['get /auth/me', 'post /auth/login']);
+      expect(seen).toEqual([]); // neither the bootstrap 401 nor the login 401 signals "session expired"
+    } finally {
+      window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, onEvent);
+    }
   });
 });
 
