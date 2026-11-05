@@ -130,6 +130,16 @@ describe('classifyRequestError / classifyRiskReturnPayload / deepEqualRiskValue'
     expect(classifyRequestError({ status: 302 })).toEqual({ kind: 'unknown', status: 302 });
   });
 
+  it('401/403/429 có loại riêng (MỚI, theo quyết định auth); 404 và 422 vẫn là client', () => {
+    expect(classifyRequestError({ status: 401 })).toEqual({ kind: 'unauthorized', status: 401 });
+    expect(classifyRequestError({ status: 403 })).toEqual({ kind: 'forbidden', status: 403 });
+    expect(classifyRequestError({ status: 429 })).toEqual({ kind: 'rateLimited', status: 429 });
+    expect(classifyRequestError({ status: 404 })).toEqual({ kind: 'client', status: 404 });
+    expect(classifyRequestError({ status: 422 })).toEqual({ kind: 'client', status: 422 });
+    expect(classifyRequestError({ status: 400 })).toEqual({ kind: 'badRequest', status: 400 });
+    expect(classifyRequestError({ status: 500 })).toEqual({ kind: 'server', status: 500 });
+  });
+
   it('phân loại payload', () => {
     expect(classifyRiskReturnPayload(null).kind).toBe('empty');
     expect(classifyRiskReturnPayload([]).kind).toBe('empty');
@@ -387,8 +397,6 @@ describe('trạng thái lỗi', () => {
   });
 
   it.each([
-    [401, 'The Risk/Return request was rejected.'],
-    [403, 'The Risk/Return request was rejected.'],
     [404, 'The Risk/Return request was rejected.'],
     [422, 'The Risk/Return request was rejected.'],
     [500, 'The Risk/Return service is temporarily unavailable.'],
@@ -402,6 +410,64 @@ describe('trạng thái lỗi', () => {
     expect(alert).toHaveTextContent(text);
     expect(alert).toHaveTextContent(`HTTP status: ${status}`);
     expect(within(alert).getByRole('button', { name: 'Try again' })).toBeInTheDocument();
+  });
+
+  // ---- 401 / 403 / 429: hành vi 401/403 đổi theo quyết định auth ----
+  // Trước đây 401 và 403 nằm trong it.each ở trên (thông điệp chung "request was rejected" + nút thử lại).
+  // Hành vi 401/403 đổi theo quyết định auth: mỗi mã có thông điệp riêng, và 401/403 KHÔNG còn nút thử lại.
+  it('401 (ĐỔI, tách khỏi it.each; hành vi 401/403 đổi theo quyết định auth): thông điệp "phiên hết hạn" và dòng mã HTTP', async () => {
+    mockFail(httpError(401));
+    renderCard();
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Your session has expired. Sign in again to see Risk/Return.');
+    expect(alert).toHaveTextContent('HTTP status: 401');
+    expect(alert).not.toHaveTextContent('The Risk/Return request was rejected.');
+    expect(document.body).not.toHaveTextContent('internal /api/risk-return secret'); // card never shows error.message
+  });
+
+  it('401 (MỚI): không có nút thử lại', async () => {
+    mockFail(httpError(401));
+    renderCard();
+    const alert = await screen.findByRole('alert');
+    expect(within(alert).queryByRole('button')).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Try again' })).toBeNull();
+    expect(api.riskReturnLatest).toHaveBeenCalledTimes(1);
+  });
+
+  it('403 (ĐỔI, tách khỏi it.each; hành vi 401/403 đổi theo quyết định auth): thông điệp "không có quyền", dòng mã HTTP và KHÔNG có nút thử lại', async () => {
+    mockFail(httpError(403));
+    renderCard();
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('You do not have access to the Risk/Return data.');
+    expect(alert).toHaveTextContent('HTTP status: 403');
+    expect(within(alert).queryByRole('button')).toBeNull();
+    expect(document.body).not.toHaveTextContent('internal /api/risk-return secret');
+  });
+
+  it('429 (MỚI): thông điệp "quá nhiều yêu cầu", dòng mã HTTP, CÓ nút thử lại và bấm thì gọi lại api', async () => {
+    api.riskReturnLatest.mockRejectedValueOnce(httpError(429)).mockResolvedValueOnce(payload());
+    renderCard();
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('Too many requests. Wait a moment, then try again.');
+    expect(alert).toHaveTextContent('HTTP status: 429');
+    expect(document.body).not.toHaveTextContent('internal /api/risk-return secret');
+    fireEvent.click(within(alert).getByRole('button', { name: 'Try again' }));
+    expect(await screen.findByRole('region', { name: 'E02' })).toBeInTheDocument();
+    expect(api.riskReturnLatest).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('alert')).toBeNull();
+  });
+
+  it.each([
+    [401, 'Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại để xem Risk/Return.', false],
+    [403, 'Bạn không có quyền xem dữ liệu Risk/Return.', false],
+    [429, 'Quá nhiều yêu cầu. Hãy chờ một lúc rồi thử lại.', true]
+  ])('vi %i (MỚI): thông điệp tiếng Việt, "Mã HTTP" và nút "Thử lại" = %s', async (status, text, hasRetry) => {
+    mockFail(httpError(status));
+    renderCard('FPT', 'vi');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(text);
+    expect(alert).toHaveTextContent(`Mã HTTP: ${status}`);
+    expect(within(alert).queryByRole('button', { name: 'Thử lại' }) !== null).toBe(hasRetry);
   });
 
   it('vi 502: thông điệp, "Mã HTTP: 502" và nút "Thử lại"', async () => {

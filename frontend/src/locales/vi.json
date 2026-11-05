@@ -547,6 +547,9 @@
     "errors": {
       "badRequest": "Yêu cầu không hợp lệ (HTTP 400). Kiểm tra mã cổ phiếu.",
       "client": "Không thể thực hiện yêu cầu do lỗi phía người dùng.",
+      "unauthorized": "Phiên đăng nhập đã hết hạn. Hãy đăng nhập lại để xem Risk/Return.",
+      "forbidden": "Bạn không có quyền xem dữ liệu Risk/Return.",
+      "rateLimited": "Quá nhiều yêu cầu. Hãy chờ một lúc rồi thử lại.",
       "server": "Dịch vụ Risk/Return đang gặp sự cố.",
       "network": "Không kết nối được đến dịch vụ Risk/Return.",
       "timeout": "Yêu cầu Risk/Return vượt quá thời gian chờ 90 giây.",
