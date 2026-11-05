@@ -547,6 +547,9 @@
     "errors": {
       "badRequest": "Invalid request (HTTP 400). Check the symbol.",
       "client": "The Risk/Return request was rejected.",
+      "unauthorized": "Your session has expired. Sign in again to see Risk/Return.",
+      "forbidden": "You do not have access to the Risk/Return data.",
+      "rateLimited": "Too many requests. Wait a moment, then try again.",
       "server": "The Risk/Return service is temporarily unavailable.",
       "network": "Cannot connect to the Risk/Return service.",
       "timeout": "The Risk/Return request timed out after 90 seconds.",

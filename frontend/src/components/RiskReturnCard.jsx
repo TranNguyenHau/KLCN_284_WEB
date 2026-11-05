@@ -289,6 +289,8 @@ function Meta({ data }) {
 function ErrorState({ error, onRetry }) {
   const { t } = useI18n();
   const { kind, status } = classifyRequestError(error);
+  // Retrying cannot fix a bad request, an expired session (401) or a denied access (403); a 429 passes with time.
+  const canRetry = kind !== 'badRequest' && kind !== 'unauthorized' && kind !== 'forbidden';
   return (
     <div className="m-4 rounded-lg border border-line/70 p-3 text-sm" role="alert">
       <div className="flex items-center gap-2 font-semibold text-ink">
@@ -298,7 +300,7 @@ function ErrorState({ error, onRetry }) {
       {status !== null && kind !== 'badRequest' && (
         <p className="mt-1 text-xs text-muted">{t('riskReturn.httpCode', { code: status })}</p>
       )}
-      {kind !== 'badRequest' && (
+      {canRetry && (
         <button type="button" className="btn mt-3 inline-flex items-center gap-2" onClick={onRetry}>
           <RefreshCw size={14} aria-hidden="true" />{t('common.retry')}
         </button>

@@ -17,6 +17,10 @@ export function classifyRequestError(error) {
   }
   const status = error?.status;
   if (status === 400) return { kind: 'badRequest', status };
+  // Auth decisions: these 4xx are not generic client errors (session gone / access denied / rate limited).
+  if (status === 401) return { kind: 'unauthorized', status };
+  if (status === 403) return { kind: 'forbidden', status };
+  if (status === 429) return { kind: 'rateLimited', status };
   if (typeof status === 'number' && Number.isFinite(status) && status >= 401 && status <= 499) {
     return { kind: 'client', status };
   }
