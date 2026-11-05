@@ -1,0 +1,6 @@
+{
+  "fixture_kind": "axios_interceptor_error",
+  "status": 302,
+  "code": "ERR_BAD_RESPONSE",
+  "note": "Synthetic Error properties. Test reject Object.assign(new Error('x'), {status, code}), without response."
+}

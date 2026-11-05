@@ -8,7 +8,8 @@
  */
 import { fmtPrice } from './format.js';
 
-export function buildInsights({ latest, series } = {}) {
+export function buildInsights(input) {
+  const { latest, series } = input ?? {};
   if (!latest) return null;
   const prev = Array.isArray(series) && series.length > 1 ? series[series.length - 2] : null;
   const factors = [];

@@ -6,6 +6,8 @@ import ExportMenu from '../components/ExportMenu.jsx';
 import PriceAlertWidget from '../components/PriceAlertWidget.jsx';
 import PriceChange from '../components/PriceChange.jsx';
 import PredictionPanel from '../components/PredictionPanel.jsx';
+import E02PredictionPanel from '../components/E02PredictionPanel.jsx';
+import RiskReturnCard from '../components/RiskReturnCard.jsx';
 import SentimentBadge from '../components/SentimentBadge.jsx';
 import Stat from '../components/Stat.jsx';
 import { Skeleton, SkeletonChart } from '../components/Skeleton.jsx';
@@ -45,6 +47,7 @@ function Segmented({ options, value, onChange, format = (option) => option, labe
 export default function StockDetail() {
   const { symbol: raw } = useParams();
   const symbol = raw.toUpperCase();
+  const isE02 = ['FPT', 'HPG', 'VCB', 'VNM', 'SSI'].includes(symbol);
   const { t } = useI18n();
   const { push } = useToast();
   const [range, setRange] = useState('3M');
@@ -57,7 +60,9 @@ export default function StockDetail() {
   // aborts them instead of letting them finish against a page that is already gone.
   const quote = useApi((signal) => api.stock(symbol, { signal }), [symbol]);
   const history = useApi((signal) => api.history(symbol, range, { signal }), [symbol, range]);
-  const prediction = useApi((signal) => api.prediction(symbol, days, { signal }), [symbol, days]);
+  // E02 predicts a 5-session return, not 7/30 per-day close prices.
+  const prediction = useApi((signal) => api.prediction(symbol, days, { signal }), [symbol, days], { enabled: !isE02 });
+  const e02Prediction = useApi((signal) => api.e02Latest(symbol, { signal }), [symbol], { enabled: isE02 });
   const indicators = useApi((signal) => api.indicators(symbol, range, { signal }), [symbol, range]);
   const news = useApi((signal) => api.news({ symbol }, { signal }), [symbol]);
   const watchlist = useApi(api.watchlist, []);
@@ -69,14 +74,14 @@ export default function StockDetail() {
   const lastPrediction = prediction.data?.predictions?.at(-1);
   const lastActual = prediction.data?.meta?.last_actual_close;
   const trend =
-    lastPrediction && lastActual
+    !isE02 && lastPrediction && lastActual
       ? { direction: lastPrediction.predicted_price > lastActual ? 'up' : lastPrediction.predicted_price < lastActual ? 'down' : 'flat' }
       : null;
 
   const askAlpha = () => window.dispatchEvent(new CustomEvent('alpha:ask', { detail: { prompt: t('stock.askPrompt', { symbol }) } }));
 
   const exportCsv = () => {
-    downloadHistoryCsv({ symbol, history: history.data?.history || [], predictions: prediction.data?.predictions || [] });
+    downloadHistoryCsv({ symbol, history: history.data?.history || [], predictions: isE02 ? [] : (prediction.data?.predictions || []) });
     push({ tone: 'success', title: t('export.csvDone') });
   };
 
@@ -85,7 +90,7 @@ export default function StockDetail() {
       symbol,
       name: quoteData?.name,
       quote: quoteData,
-      prediction: prediction.data,
+      prediction: isE02 ? null : prediction.data,
       indicators: indicators.data,
       history: history.data?.history || [],
       labels: {
@@ -172,7 +177,7 @@ export default function StockDetail() {
               <PriceChange change={quoteData.change} percent={quoteData.changePercent} />
             </div>
             <div className="mt-1 text-xs text-muted">
-              {t('stock.closeOn', { date: quoteData.asOf })} {quoteData.isRealtime ? t('market.liveData') : t('market.sampleData')}
+              {t('stock.closeOn', { date: quoteData.asOf })} {quoteData.dataSource === 'stocktrain-e02' ? 'Dữ liệu giá lịch sử (không realtime)' : (quoteData.isRealtime ? t('market.liveData') : t('market.sampleData'))}
             </div>
           </div>
         )}
@@ -218,16 +223,16 @@ export default function StockDetail() {
               <div className="flex flex-wrap justify-end gap-2">
                 <Segmented options={['line', 'candle']} value={mode} onChange={setMode} label={t('stock.chartMode')} format={(value) => t(value === 'line' ? 'stock.modeLine' : 'stock.modeCandle')} />
                 <Segmented options={RANGES} value={range} onChange={setRange} label={t('common.range')} format={(value) => t(`stock.range${value}`)} />
-                {mode === 'line' && <Segmented options={[7, 30]} value={days} onChange={setDays} label={t('stock.forecastRange')} format={(value) => t('stock.forecastDays', { days: value })} />}
+                {mode === 'line' && !isE02 && <Segmented options={[7, 30]} value={days} onChange={setDays} label={t('stock.forecastRange')} format={(value) => t('stock.forecastDays', { days: value })} />}
               </div>
             }
           />
           <div className="p-3">
             {history.loading && !history.data && <SkeletonChart height="h-[380px]" />}
             {history.error && <ErrorBox error={history.error} onRetry={history.reload} />}
-            {history.data && (mode === 'line' ? <PriceChart history={history.data.history} predictions={prediction.data?.predictions} /> : <CandleChart history={history.data.history} />)}
-            {mode === 'line' && prediction.loading && <p className="px-2 text-xs text-muted">{t('stock.predictionPending')}</p>}
-            {mode === 'line' && prediction.error && <p className="px-2 text-xs text-warn">{t('stock.noForecastOnChart', { message: prediction.error.message })}</p>}
+            {history.data && (mode === 'line' ? <PriceChart history={history.data.history} predictions={isE02 ? undefined : prediction.data?.predictions} /> : <CandleChart history={history.data.history} />)}
+            {mode === 'line' && !isE02 && prediction.loading && <p className="px-2 text-xs text-muted">{t('stock.predictionPending')}</p>}
+            {mode === 'line' && !isE02 && prediction.error && <p className="px-2 text-xs text-warn">{t('stock.noForecastOnChart', { message: prediction.error.message })}</p>}
           </div>
         </Card>
 
@@ -237,7 +242,8 @@ export default function StockDetail() {
       </div>
 
       <div className="grid gap-5 lg:grid-cols-3">
-        <PredictionPanel state={prediction} days={days} onRetry={prediction.reload} />
+        {isE02 ? <E02PredictionPanel state={e02Prediction} symbol={symbol} onRetry={e02Prediction.reload} />
+          : <PredictionPanel state={prediction} days={days} onRetry={prediction.reload} />}
         <PriceAlertWidget symbol={symbol} price={quoteData?.price} />
         <Card>
           <CardHeader title={t('stock.newsTitle', { symbol })} right={news.data && <SentimentBadge label={news.data.summary.label} score={news.data.summary.averageScore} />} />
@@ -257,6 +263,8 @@ export default function StockDetail() {
           )}
         </Card>
       </div>
+
+      {isE02 && <RiskReturnCard symbol={symbol} />}
     </div>
   );
 }

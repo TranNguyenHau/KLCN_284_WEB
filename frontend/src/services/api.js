@@ -1,20 +1,39 @@
 import axios from 'axios';
 
-const http = axios.create({ baseURL: import.meta.env.VITE_API_URL || '/api', timeout: 90000 });
+// Same values as context/AuthContext.jsx (kept here so this service layer does not import React;
+// api.interceptor.test.js fails if the two ever drift apart).
+const CSRF_HEADER = 'X-Requested-With';
+const CSRF_VALUE = import.meta.env.VITE_CSRF_HEADER_VALUE || 'StockTrain';
+const UNAUTHORIZED_EVENT = 'stocktrain:unauthorized';
+
+// withCredentials: the session lives in an HttpOnly cookie. The custom header is the CSRF defence for writes.
+const http = axios.create({
+  baseURL: import.meta.env.VITE_API_URL || '/api',
+  timeout: 90000,
+  withCredentials: true,
+  headers: { [CSRF_HEADER]: CSRF_VALUE }
+});
 
 http.interceptors.response.use(
   (res) => res.data,
   (err) => {
     const payload = err.response?.data?.error;
-    const error = new Error(payload?.message || (err.code === 'ERR_NETWORK' ? 'Cannot reach the API server. Start the Node.js backend on port 4000.' : err.message));
+    const error = new Error(payload?.message || (err.code === 'ERR_NETWORK' ? 'Cannot reach the API server. Make sure the Node.js backend is running.' : err.message));
     error.code = payload?.code || err.code || 'REQUEST_FAILED';
     error.status = err.response?.status;
+    // 401 = the session is gone. AuthContext listens and sends the user back to /login.
+    // The error is still rejected unchanged so the caller can show its own state.
+    if (error.status === 401 && typeof window !== 'undefined') window.dispatchEvent(new Event(UNAUTHORIZED_EVENT));
     return Promise.reject(error);
   }
 );
 
 export const api = {
   health: () => http.get('/health'),
+  e02Health: () => http.get('/e02/health'),
+  e02Prices: (symbol, config) => http.get('/e02/prices', { params: { symbol }, ...config }),
+  e02Latest: (symbol, config) => http.get('/e02/predictions/latest', { params: { symbol }, ...config }),
+  riskReturnLatest: (symbol, config) => http.get('/risk-return/latest', { params: { symbol }, ...config }),
   overview: () => http.get('/market/overview'),
   searchStocks: (q = '') => http.get('/stocks/search', { params: { q } }),
   // config carries the abort signal so useApi can cancel a request when the page changes.

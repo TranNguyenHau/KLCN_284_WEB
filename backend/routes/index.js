@@ -1,11 +1,34 @@
 import { Router } from 'express';
 import * as s from '../controllers/stockController.js';
 import * as m from '../controllers/miscController.js';
+import * as e02 from '../controllers/e02Controller.js';
+import { config } from '../config.js';
+import { createFlaskForwarder } from './flaskForward.js';
+import { createAuthProxy } from './authProxy.js';
+import { createAuthCache, createRequireAuth, requireCsrfHeader } from '../middleware/requireAuth.js';
 
 const router = Router();
+const flaskOrigin = new URL(config.stocktrainApiUrl).origin;
+const authCache = createAuthCache({ ttlMs: config.authCacheTtlMs });
 
+// PUBLIC: liveness check only (see PUBLIC_PATHS in middleware/requireAuth.js).
 router.get('/health', m.health);
+
+// /auth/* is relayed to Flask, which owns login, logout, registration, sessions and roles.
+router.use(createAuthProxy({ baseUrl: flaskOrigin, cache: authCache }));
+
+// Everything below needs a valid session (user or admin) and, for writes, the CSRF header.
+router.use(createRequireAuth({ baseUrl: flaskOrigin, cache: authCache }));
+router.use(requireCsrfHeader({ value: config.csrfHeaderValue }));
+
+// Read-only StockTrain E02 data from the existing Flask + PostgreSQL service.
+router.get('/e02/health', e02.health);
+router.get('/e02/prices', e02.prices);
+router.get('/e02/predictions/latest', e02.latest);
 router.get('/market/overview', s.overview);
+
+// E10 volatility + combined risk-return: forward-only to Flask (no DB in Express).
+router.use(createFlaskForwarder({ baseUrl: flaskOrigin }));
 
 router.get('/stocks/search', s.search);
 router.get('/stocks/:symbol', s.detail);

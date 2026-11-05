@@ -6,7 +6,13 @@ import { notFound, errorHandler } from './middleware/errorHandler.js';
 
 const app = express();
 
-app.use(cors({ origin: config.corsOrigin.split(',').map((o) => o.trim()) }));
+// Only loopback proxies (the Vite dev server) may set X-Forwarded-For; req.ip is relayed to Flask for rate limiting.
+app.set('trust proxy', 'loopback');
+app.use(cors({
+  origin: config.corsOrigins, // exact origins, never "*" (credentials are enabled)
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'X-Requested-With'],
+}));
 app.use(express.json({ limit: '256kb' }));
 app.use((req, res, next) => {
   const start = Date.now();

@@ -61,7 +61,7 @@ export default function CommandPalette({ open, onClose, contextSymbol }) {
 
     const pageItems = [
       { id: 'page-dashboard', label: t('nav.dashboard'), icon: TrendingUp, run: () => go('/') },
-      { id: 'page-analysis', label: t('nav.analysis'), icon: Search, run: () => go(contextSymbol ? `/analysis/${contextSymbol}` : '/analysis/VIC') },
+      { id: 'page-analysis', label: t('nav.analysis'), icon: Search, run: () => go(contextSymbol ? `/analysis/${contextSymbol}` : '/analysis/FPT') },
       { id: 'page-portfolio', label: t('nav.portfolio'), icon: Search, run: () => go('/portfolio') },
       { id: 'page-trading', label: t('nav.trading'), icon: Search, run: () => go('/trading') },
       { id: 'page-news', label: t('nav.news'), icon: Search, run: () => go('/news') }

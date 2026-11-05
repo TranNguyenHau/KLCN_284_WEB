@@ -22,12 +22,14 @@ export function MarketStatusPill() {
   );
 }
 
-export function DataSourcePill({ realtime }) {
+export function DataSourcePill({ realtime, provider }) {
   const { t } = useI18n();
+  const historical = provider === 'stocktrain-e02';
+  const label = historical ? 'Giá lịch sử (không realtime)' : (realtime ? t('market.liveData') : t('market.sampleData'));
   return (
-    <span className={`chip ${realtime ? 'bg-up/15 text-up' : 'bg-warn/15 text-warn'}`} title={realtime ? t('market.liveData') : t('market.sampleData')}>
+    <span className={`chip ${realtime ? 'bg-up/15 text-up' : 'bg-warn/15 text-warn'}`} title={label}>
       {realtime ? <Wifi size={12} /> : <WifiOff size={12} />}
-      <span className="hidden sm:inline">{realtime ? t('market.liveShort') : t('market.sampleShort')}</span>
+      <span className="hidden sm:inline">{historical ? 'Giá lịch sử' : (realtime ? t('market.liveShort') : t('market.sampleShort'))}</span>
     </span>
   );
 }

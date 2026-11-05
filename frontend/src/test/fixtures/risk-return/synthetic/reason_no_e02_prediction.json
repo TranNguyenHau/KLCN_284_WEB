@@ -1,0 +1,54 @@
+{
+  "aligned": false,
+  "as_of": null,
+  "derived": null,
+  "e02": {
+    "count": 0,
+    "predictions": []
+  },
+  "e10": {
+    "age_weekdays": 2,
+    "artifact_sha256": "dacd7e4dc0bbb0d67100060492c0386f3c2e05fa7ab9ad1bdc1d78f4666918ac",
+    "artifact_version": "e10_har_artifact_v0",
+    "as_of": "2026-10-22",
+    "created_at": "2026-10-22T15:15:10.365844+07:00",
+    "experiment_id": "E10_H5_VOL_HAR_S0_SEED42",
+    "horizon": 5,
+    "is_stale": false,
+    "model_name": "HAR_OLS",
+    "predicted_log_volatility": -4.473913972097,
+    "predicted_volatility": 0.011302598943,
+    "price_source": "KBS",
+    "record_status": "OK",
+    "research_status": "dev_pass_unconfirmed",
+    "rv20": -4.326373591888,
+    "rv5": -4.701434715931,
+    "rv60": -4.068939695999,
+    "source_sha256": "51fec5c83149f741cf6bb8aef7d5d86d544bc5a5813b42efa2ac4d2c8f7f8a38",
+    "stale_basis": "mon_fri_heuristic",
+    "symbol": "FPT",
+    "trained_until": "2024-12-09",
+    "volatility_unit": "daily_log_return_rms (fraction, chưa annualize)",
+    "warnings": [
+      {
+        "code": "CALENDAR_GAP",
+        "days": 6,
+        "from": "2026-08-28",
+        "note": "Possible market holiday; exchange calendar not verified",
+        "to": "2026-09-03"
+      }
+    ]
+  },
+  "meta": {
+    "notes": [
+      "z_score là tỷ lệ mô tả hai đầu ra, không phải xác suất",
+      "Dải ±σ không phải khoảng tin cậy",
+      "E02 và E10 chưa được xác nhận độc lập",
+      "Đây không phải khuyến nghị đầu tư"
+    ],
+    "research_status": "dev_pass_unconfirmed"
+  },
+  "reason": "NO_E02_PREDICTION",
+  "symbol": "FPT",
+  "used_latest_e10": null
+}

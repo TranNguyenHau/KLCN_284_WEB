@@ -1,4 +1,5 @@
 import { getQuote, getFullHistory, normalizeSymbol } from './marketDataService.js';
+import { config } from '../config.js';
 import { AppError, round } from '../utils/errors.js';
 
 const FEE_RATE = 0.0015;
@@ -7,13 +8,13 @@ const INITIAL_CASH = 500000000;
 const initialState = () => ({
   cash: INITIAL_CASH,
   holdings: [
-    { symbol: 'VIC', quantity: 500, avgCost: 98000 },
+    { symbol: config.marketDataProvider === 'stocktrain' ? 'SSI' : 'VIC', quantity: 500, avgCost: 98000 },
     { symbol: 'FPT', quantity: 300, avgCost: 118000 },
     { symbol: 'VCB', quantity: 400, avgCost: 90000 }
   ],
   orders: [],
   realizedPnl: 0,
-  watchlist: ['VIC', 'FPT', 'VCB', 'HPG'],
+  watchlist: config.marketDataProvider === 'stocktrain' ? ['FPT', 'VCB', 'HPG', 'SSI'] : ['VIC', 'FPT', 'VCB', 'HPG'],
   alerts: [],
   nextId: 1
 });

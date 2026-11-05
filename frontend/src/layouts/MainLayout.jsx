@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, useMatch } from 'react-router-dom';
-import { Activity, ArrowLeftRight, Command as CommandIcon, LayoutDashboard, Menu, Moon, Newspaper, PanelLeftClose, PanelLeftOpen, Search, Sun, Wallet, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation, useMatch, useNavigate } from 'react-router-dom';
+import { Activity, ArrowLeftRight, Command as CommandIcon, KeyRound, LayoutDashboard, LogOut, Menu, Moon, Newspaper, PanelLeftClose, PanelLeftOpen, Search, Sun, User, Users, Wallet, X } from 'lucide-react';
 import AlphaChat from '../components/AlphaChat.jsx';
+import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx';
 import CommandPalette from '../components/CommandPalette.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import LanguageSwitcher from '../components/LanguageSwitcher.jsx';
 import MarketStatusPill, { DataSourcePill, ServicePill } from '../components/MarketStatusPill.jsx';
 import TickerTape from '../components/TickerTape.jsx';
 import { useTheme } from '../hooks/useTheme.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { useI18n } from '../i18n/index.jsx';
 import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { api } from '../services/api.js';
@@ -18,7 +20,7 @@ const GROUPS = [
   {
     key: 'groupAnalysis',
     items: [
-      { to: '/analysis/VIC', labelKey: 'nav.analysis', icon: Activity, match: '/analysis' },
+      { to: '/analysis/FPT', labelKey: 'nav.analysis', icon: Activity, match: '/analysis' },
       { to: '/news', labelKey: 'nav.news', icon: Newspaper }
     ]
   },
@@ -31,13 +33,18 @@ const GROUPS = [
   }
 ];
 
+// Shown only to administrators. Hiding it is a convenience: the server rejects non-admins anyway.
+const ADMIN_GROUP = { key: 'groupAdmin', items: [{ to: '/users', labelKey: 'nav.users', icon: Users }] };
+
 function NavList({ collapsed }) {
   const { t } = useI18n();
+  const { isAdmin } = useAuth();
   const location = useLocation();
+  const groups = isAdmin ? [...GROUPS, ADMIN_GROUP] : GROUPS;
 
   return (
     <nav className="flex flex-1 flex-col gap-4 overflow-y-auto p-3">
-      {GROUPS.map((group) => (
+      {groups.map((group) => (
         <div key={group.key}>
           {group.key !== 'main' && (
             <p className={`mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-muted ${collapsed ? 'sr-only' : ''}`}>{t(`nav.${group.key}`)}</p>
@@ -70,9 +77,67 @@ function NavList({ collapsed }) {
   );
 }
 
+function UserMenu({ onChangePassword }) {
+  const { t } = useI18n();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (event) => {
+      if (!ref.current?.contains(event.target)) setOpen(false);
+    };
+    const onKey = (event) => event.key === 'Escape' && setOpen(false);
+    document.addEventListener('mousedown', onDown);
+    window.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      window.removeEventListener('keydown', onKey);
+    };
+  }, [open]);
+
+  if (!user) return null;
+  const name = user.ho_ten || user.ten_dang_nhap;
+  const roleLabel = t(user.vai_tro === 'admin' ? 'auth.menu.role_admin' : 'auth.menu.role_user');
+
+  async function onLogout() {
+    setOpen(false);
+    await logout();
+    navigate('/login', { replace: true });
+  }
+
+  return (
+    <div className="relative" ref={ref}>
+      <button type="button" className="btn btn-ghost gap-1.5 px-2" aria-haspopup="menu" aria-expanded={open}
+        aria-label={t('auth.menu.account')} onClick={() => setOpen((value) => !value)}>
+        <User size={16} />
+        <span className="hidden max-w-[120px] truncate text-sm sm:inline">{name}</span>
+      </button>
+      {open && (
+        <div role="menu" className="glass absolute right-0 z-50 mt-2 w-56 rounded-xl p-1.5">
+          <div className="px-3 py-2">
+            <p className="truncate text-sm font-semibold">{name}</p>
+            <p className="text-xs text-muted">{roleLabel}</p>
+          </div>
+          <button type="button" role="menuitem" className="btn btn-ghost w-full justify-start gap-2"
+            onClick={() => { setOpen(false); onChangePassword(); }}>
+            <KeyRound size={14} />{t('auth.menu.changePassword')}
+          </button>
+          <button type="button" role="menuitem" className="btn btn-ghost w-full justify-start gap-2" onClick={onLogout}>
+            <LogOut size={14} />{t('auth.menu.logout')}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MainLayout() {
   const { t } = useI18n();
   const { theme, toggle } = useTheme();
+  const [passwordOpen, setPasswordOpen] = useState(false);
   const [menu, setMenu] = useState(false);
   const [collapsed, setCollapsed] = useLocalStorage('alpha.sidebar-collapsed', false);
   const [paletteOpen, setPaletteOpen] = useState(false);
@@ -196,19 +261,20 @@ export default function MainLayout() {
               <div className="ml-auto flex items-center gap-1.5">
                 <div className="hidden items-center gap-1.5 md:flex">
                   <MarketStatusPill />
-                  <DataSourcePill realtime={health?.marketData?.realtime} />
+                  <DataSourcePill realtime={health?.marketData?.realtime} provider={health?.marketData?.provider} />
                   {mlPill && <ServicePill {...mlPill} />}
                 </div>
                 <LanguageSwitcher />
                 <button className="btn btn-ghost btn-icon px-2" onClick={toggle} aria-label={t('a11y.toggleTheme')}>
                   {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
                 </button>
+                <UserMenu onChangePassword={() => setPasswordOpen(true)} />
               </div>
             </div>
 
             <div className="flex items-center gap-2 overflow-hidden px-3 pb-2 md:hidden">
               <MarketStatusPill />
-              <DataSourcePill realtime={health?.marketData?.realtime} />
+              <DataSourcePill realtime={health?.marketData?.realtime} provider={health?.marketData?.provider} />
             </div>
           </div>
 
@@ -227,6 +293,7 @@ export default function MainLayout() {
       
 
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} contextSymbol={contextSymbol} />
+      <ChangePasswordDialog open={passwordOpen} onClose={() => setPasswordOpen(false)} />
       <AlphaChat />
       
     </div>

@@ -166,7 +166,7 @@ export default function Dashboard() {
           <h1 className="text-xl font-bold">{t('dashboard.title')}</h1>
           {data && (
             <p className="text-sm text-muted">
-              {t('market.asOf', { date: data.asOf })} {data.isRealtime ? t('market.liveData') : t('market.sampleData')}
+              {t('market.asOf', { date: data.asOf })} {data.dataSource === 'stocktrain-e02' ? 'Dữ liệu lịch sử VNStock (không realtime)' : (data.isRealtime ? t('market.liveData') : t('market.sampleData'))}
             </p>
           )}
           {!data && !error && <Skeleton className="mt-2 h-4 w-64" />}
