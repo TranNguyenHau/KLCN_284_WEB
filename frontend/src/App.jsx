@@ -8,6 +8,10 @@ import TechnicalAnalysis from './pages/TechnicalAnalysis.jsx';
 import Portfolio from './pages/Portfolio.jsx';
 import Trading from './pages/Trading.jsx';
 import News from './pages/News.jsx';
+import Login from './pages/Login.jsx';
+import Register from './pages/Register.jsx';
+import Users from './pages/Users.jsx';
+import ProtectedRoute, { AdminRoute } from './components/ProtectedRoute.jsx';
 
 export default function App() {
   const location = useLocation();
@@ -16,15 +20,24 @@ export default function App() {
     // resetKey lets the boundary recover as soon as the user navigates somewhere else.
     <ErrorBoundary resetKey={location.pathname}>
       <Routes>
-        <Route element={<MainLayout />}>
-          <Route index element={<Dashboard />} />
-          <Route path="stock/:symbol" element={<StockDetail />} />
-          <Route path="analysis/:symbol" element={<TechnicalAnalysis />} />
-          <Route path="portfolio" element={<Portfolio />} />
-          <Route path="trading" element={<Trading />} />
-          <Route path="news" element={<News />} />
-          {/* Unknown addresses get a real page: it lists the routes that are not built yet. */}
-          <Route path="*" element={<NotFound />} />
+        {/* Public pages: everything else needs a session (the server enforces this too). */}
+        <Route path="login" element={<Login />} />
+        <Route path="register" element={<Register />} />
+
+        <Route element={<ProtectedRoute />}>
+          <Route element={<MainLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="stock/:symbol" element={<StockDetail />} />
+            <Route path="analysis/:symbol" element={<TechnicalAnalysis />} />
+            <Route path="portfolio" element={<Portfolio />} />
+            <Route path="trading" element={<Trading />} />
+            <Route path="news" element={<News />} />
+            <Route element={<AdminRoute />}>
+              <Route path="users" element={<Users />} />
+            </Route>
+            {/* Unknown addresses get a real page: it lists the routes that are not built yet. */}
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Route>
       </Routes>
     </ErrorBoundary>

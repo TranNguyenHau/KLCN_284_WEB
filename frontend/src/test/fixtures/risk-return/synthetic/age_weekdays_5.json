@@ -1,0 +1,195 @@
+{
+  "aligned": true,
+  "as_of": "2026-10-22",
+  "context": {
+    "e10_over_vol20": 0.9646,
+    "historical_percentile": 6.8376,
+    "volatility_20_pct": 1.1718
+  },
+  "derived": {
+    "assumptions": [
+      "sigma_5d = sigma_daily*sqrt(5): giả định lợi suất các ngày độc lập",
+      "sigma_annualized = sigma_daily*sqrt(252): chỉ để hiển thị quy đổi"
+    ],
+    "band_1sigma_pct": [
+      -4.6237,
+      0.4309
+    ],
+    "band_2sigma_pct": [
+      -7.1511,
+      2.9583
+    ],
+    "horizon_sessions": 5,
+    "model_agreement": {
+      "same_sign_as_median": 4,
+      "total": 5
+    },
+    "return_max_pct": 1.8698,
+    "return_median_pct": -2.0964,
+    "return_min_pct": -2.5585,
+    "sigma_5d_pct": 2.5273,
+    "sigma_annualized_pct": 17.9423,
+    "sigma_daily_pct": 1.1303,
+    "z_score": -0.8295
+  },
+  "e02": {
+    "count": 5,
+    "predictions": [
+      {
+        "as_of": "2026-10-22",
+        "bundle_sha256": "e959e55ddce338768b7e6da52c5734aed6b6080579860242105675d0ece6b49c",
+        "descriptive_risk": {
+          "Volatility_20": 0.011717936371095845,
+          "historical_percentile": 6.837606837606838,
+          "notice": "Chỉ báo biến động mô tả, chưa phải mô hình dự báo rủi ro; phân vị chỉ dùng lịch sử trước điểm hiện tại trong price_df."
+        },
+        "experiment_id": "E02_H5_F1_T0_S0_SEED42",
+        "model": "LinearRegression",
+        "predicted_return": -0.025585,
+        "predicted_return_percent": -2.5585,
+        "risk_level": "LOW",
+        "risk_notice": "Mức rủi ro chỉ dựa trên phân vị biến động lịch sử, không phải dự báo E10.",
+        "symbol": "FPT",
+        "target_date": "2026-10-29",
+        "target_date_estimated": true,
+        "target_notice": "Ngày mục tiêu chỉ ước lượng theo thứ Hai–thứ Sáu, chưa trừ ngày nghỉ sàn.",
+        "trained_until": "2025-08-19",
+        "trend": "DOWN",
+        "warnings": []
+      },
+      {
+        "as_of": "2026-10-22",
+        "bundle_sha256": "e959e55ddce338768b7e6da52c5734aed6b6080579860242105675d0ece6b49c",
+        "descriptive_risk": {
+          "Volatility_20": 0.011717936371095845,
+          "historical_percentile": 6.837606837606838,
+          "notice": "Chỉ báo biến động mô tả, chưa phải mô hình dự báo rủi ro; phân vị chỉ dùng lịch sử trước điểm hiện tại trong price_df."
+        },
+        "experiment_id": "E02_H5_F1_T0_S0_SEED42",
+        "model": "LSTM",
+        "predicted_return": 0.018698,
+        "predicted_return_percent": 1.8698,
+        "risk_level": "LOW",
+        "risk_notice": "Mức rủi ro chỉ dựa trên phân vị biến động lịch sử, không phải dự báo E10.",
+        "symbol": "FPT",
+        "target_date": "2026-10-29",
+        "target_date_estimated": true,
+        "target_notice": "Ngày mục tiêu chỉ ước lượng theo thứ Hai–thứ Sáu, chưa trừ ngày nghỉ sàn.",
+        "trained_until": "2025-08-19",
+        "trend": "UP",
+        "warnings": []
+      },
+      {
+        "as_of": "2026-10-22",
+        "bundle_sha256": "e959e55ddce338768b7e6da52c5734aed6b6080579860242105675d0ece6b49c",
+        "descriptive_risk": {
+          "Volatility_20": 0.011717936371095845,
+          "historical_percentile": 6.837606837606838,
+          "notice": "Chỉ báo biến động mô tả, chưa phải mô hình dự báo rủi ro; phân vị chỉ dùng lịch sử trước điểm hiện tại trong price_df."
+        },
+        "experiment_id": "E02_H5_F1_T0_S0_SEED42",
+        "model": "RandomForest",
+        "predicted_return": -0.005637,
+        "predicted_return_percent": -0.5637,
+        "risk_level": "LOW",
+        "risk_notice": "Mức rủi ro chỉ dựa trên phân vị biến động lịch sử, không phải dự báo E10.",
+        "symbol": "FPT",
+        "target_date": "2026-10-29",
+        "target_date_estimated": true,
+        "target_notice": "Ngày mục tiêu chỉ ước lượng theo thứ Hai–thứ Sáu, chưa trừ ngày nghỉ sàn.",
+        "trained_until": "2025-08-19",
+        "trend": "DOWN",
+        "warnings": []
+      },
+      {
+        "as_of": "2026-10-22",
+        "bundle_sha256": "e959e55ddce338768b7e6da52c5734aed6b6080579860242105675d0ece6b49c",
+        "descriptive_risk": {
+          "Volatility_20": 0.011717936371095845,
+          "historical_percentile": 6.837606837606838,
+          "notice": "Chỉ báo biến động mô tả, chưa phải mô hình dự báo rủi ro; phân vị chỉ dùng lịch sử trước điểm hiện tại trong price_df."
+        },
+        "experiment_id": "E02_H5_F1_T0_S0_SEED42",
+        "model": "SVM (SVR)",
+        "predicted_return": -0.020964,
+        "predicted_return_percent": -2.0964,
+        "risk_level": "LOW",
+        "risk_notice": "Mức rủi ro chỉ dựa trên phân vị biến động lịch sử, không phải dự báo E10.",
+        "symbol": "FPT",
+        "target_date": "2026-10-29",
+        "target_date_estimated": true,
+        "target_notice": "Ngày mục tiêu chỉ ước lượng theo thứ Hai–thứ Sáu, chưa trừ ngày nghỉ sàn.",
+        "trained_until": "2025-08-19",
+        "trend": "DOWN",
+        "warnings": []
+      },
+      {
+        "as_of": "2026-10-22",
+        "bundle_sha256": "e959e55ddce338768b7e6da52c5734aed6b6080579860242105675d0ece6b49c",
+        "descriptive_risk": {
+          "Volatility_20": 0.011717936371095845,
+          "historical_percentile": 6.837606837606838,
+          "notice": "Chỉ báo biến động mô tả, chưa phải mô hình dự báo rủi ro; phân vị chỉ dùng lịch sử trước điểm hiện tại trong price_df."
+        },
+        "experiment_id": "E02_H5_F1_T0_S0_SEED42",
+        "model": "XGBoost",
+        "predicted_return": -0.021867,
+        "predicted_return_percent": -2.1867,
+        "risk_level": "LOW",
+        "risk_notice": "Mức rủi ro chỉ dựa trên phân vị biến động lịch sử, không phải dự báo E10.",
+        "symbol": "FPT",
+        "target_date": "2026-10-29",
+        "target_date_estimated": true,
+        "target_notice": "Ngày mục tiêu chỉ ước lượng theo thứ Hai–thứ Sáu, chưa trừ ngày nghỉ sàn.",
+        "trained_until": "2025-08-19",
+        "trend": "DOWN",
+        "warnings": []
+      }
+    ]
+  },
+  "e10": {
+    "age_weekdays": 5,
+    "artifact_sha256": "dacd7e4dc0bbb0d67100060492c0386f3c2e05fa7ab9ad1bdc1d78f4666918ac",
+    "artifact_version": "e10_har_artifact_v0",
+    "as_of": "2026-10-22",
+    "created_at": "2026-10-22T15:15:10.365844+07:00",
+    "experiment_id": "E10_H5_VOL_HAR_S0_SEED42",
+    "horizon": 5,
+    "is_stale": false,
+    "model_name": "HAR_OLS",
+    "predicted_log_volatility": -4.473913972097,
+    "predicted_volatility": 0.011302598943,
+    "price_source": "KBS",
+    "record_status": "OK",
+    "research_status": "dev_pass_unconfirmed",
+    "rv20": -4.326373591888,
+    "rv5": -4.701434715931,
+    "rv60": -4.068939695999,
+    "source_sha256": "51fec5c83149f741cf6bb8aef7d5d86d544bc5a5813b42efa2ac4d2c8f7f8a38",
+    "stale_basis": "mon_fri_heuristic",
+    "symbol": "FPT",
+    "trained_until": "2024-12-09",
+    "volatility_unit": "daily_log_return_rms (fraction, chưa annualize)",
+    "warnings": [
+      {
+        "code": "CALENDAR_GAP",
+        "days": 6,
+        "from": "2026-08-28",
+        "note": "Possible market holiday; exchange calendar not verified",
+        "to": "2026-09-03"
+      }
+    ]
+  },
+  "meta": {
+    "notes": [
+      "z_score là tỷ lệ mô tả hai đầu ra, không phải xác suất",
+      "Dải ±σ không phải khoảng tin cậy",
+      "E02 và E10 chưa được xác nhận độc lập",
+      "Đây không phải khuyến nghị đầu tư"
+    ],
+    "research_status": "dev_pass_unconfirmed"
+  },
+  "reason": null,
+  "symbol": "FPT",
+  "used_latest_e10": true
+}

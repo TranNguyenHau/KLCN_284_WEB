@@ -12,7 +12,7 @@ import { api } from '../services/api.js';
  * redirecting to the dashboard.
  */
 const PLANNED = [
-  { path: '/technical', labelKey: 'notFound.plannedTechnical', instead: { to: '/analysis/VIC', label: '/analysis/VIC' } },
+  { path: '/technical', labelKey: 'notFound.plannedTechnical', instead: { to: '/analysis/FPT', label: '/analysis/FPT' } },
   { path: '/screener', labelKey: 'notFound.plannedScreener' },
   { path: '/compare', labelKey: 'notFound.plannedCompare' },
   { path: '/reports', labelKey: 'notFound.plannedReports' },
@@ -24,7 +24,7 @@ const LIVE = [
   { to: '/portfolio', labelKey: 'nav.portfolio' },
   { to: '/trading', labelKey: 'nav.trading' },
   { to: '/news', labelKey: 'nav.news' },
-  { to: '/analysis/VIC', labelKey: 'nav.analysis' }
+  { to: '/analysis/FPT', labelKey: 'nav.analysis' }
 ];
 
 export default function NotFound() {

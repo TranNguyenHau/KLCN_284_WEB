@@ -59,7 +59,7 @@ const Footer = () => {
               <li>
                 {/* Used to point at /technical, which is not a route - it ended on the 404 page. */}
                 <Link
-                  to="/analysis/VIC"
+                  to="/analysis/FPT"
                   className="flex items-center gap-2 text-gray-400 transition hover:text-white"
                 >
                   <LineChart className="h-4 w-4" />

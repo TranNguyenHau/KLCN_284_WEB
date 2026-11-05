@@ -5,6 +5,7 @@ import App from './App.jsx';
 import { I18nProvider } from './i18n/index.jsx';
 import { ThemeProvider } from './hooks/useTheme.jsx';
 import { ToastProvider } from './hooks/useToast.jsx';
+import { AuthProvider } from './context/AuthContext.jsx';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
@@ -13,7 +14,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <I18nProvider>
         <ToastProvider>
           <BrowserRouter>
-            <App />
+            <AuthProvider>
+              <App />
+            </AuthProvider>
           </BrowserRouter>
         </ToastProvider>
       </I18nProvider>
