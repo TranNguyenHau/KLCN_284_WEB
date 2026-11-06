@@ -12,7 +12,10 @@
     "groupAnalysis": "Phân tích",
     "groupAccount": "Tài khoản",
     "groupAdmin": "Quản trị",
-    "users": "Người dùng"
+    "users": "Người dùng",
+    "models": "Hiệu suất mô hình",
+    "adminUsers": "Quản lý người dùng",
+    "adminModels": "Quản lý mô hình"
   },
   "common": {
     "loading": "Đang tải",
@@ -498,6 +501,86 @@
       "creating": "Đang tạo…",
       "updated": "Đã cập nhật người dùng.",
       "created": "Đã tạo người dùng."
+    }
+  },
+  "admin": {
+    "title": "Khu vực quản trị",
+    "badge": "Chỉ dành cho quản trị viên",
+    "subtitle": "Quản lý tài khoản và xem báo cáo mô hình dự báo.",
+    "tabs": {
+      "users": "Quản lý người dùng",
+      "models": "Quản lý mô hình"
+    },
+    "users": {
+      "searchPlaceholder": "Tìm theo tên đăng nhập, họ tên hoặc email",
+      "searchLabel": "Tìm tài khoản",
+      "roleFilter": "Lọc theo vai trò",
+      "allRoles": "Mọi vai trò",
+      "fullName": "Họ tên",
+      "created": "Ngày tạo",
+      "edit": "Sửa",
+      "delete": "Xóa",
+      "editTitle": "Sửa tài khoản",
+      "save": "Lưu",
+      "cancel": "Hủy",
+      "saving": "Đang lưu…",
+      "deleteTitle": "Xóa tài khoản",
+      "deleteBody": "Xóa tài khoản \"{name}\"? Không thể hoàn tác. Nếu muốn giữ dữ liệu, hãy vô hiệu hóa tài khoản thay vì xóa.",
+      "deleteConfirm": "Xóa",
+      "deleting": "Đang xóa…",
+      "noMatch": "Không có tài khoản nào khớp bộ lọc.",
+      "saved": "Đã cập nhật tài khoản.",
+      "deleted": "Đã xóa tài khoản.",
+      "count": "{shown}/{total} tài khoản"
+    },
+    "errors": {
+      "emailTaken": "Email này đã được tài khoản khác sử dụng.",
+      "selfDelete": "Không thể xóa chính tài khoản đang đăng nhập.",
+      "lastAdminDelete": "Không thể xóa quản trị viên hoạt động cuối cùng.",
+      "hasRelated": "Tài khoản đã có dữ liệu liên quan (hội thoại chatbot) nên không thể xóa. Hãy vô hiệu hóa tài khoản thay thế.",
+      "notFound": "Tài khoản này không còn tồn tại."
+    }
+  },
+  "modelReport": {
+    "title": "Báo cáo hiệu suất mô hình dự báo",
+    "subtitleUser": "Độ chính xác của các mô hình dự báo theo từng cổ phiếu (chỉ xem).",
+    "subtitleAdmin": "Kết quả đánh giá theo từng cổ phiếu và mô hình. Lọc, sắp xếp và xuất file để so sánh.",
+    "dataset": "Tập dữ liệu",
+    "datasets": {
+      "TRAIN": "Huấn luyện",
+      "VAL": "Kiểm định",
+      "TEST": "Kiểm tra"
+    },
+    "symbol": "Cổ phiếu",
+    "allSymbols": "Mọi cổ phiếu",
+    "model": "Mô hình",
+    "allModels": "Mọi mô hình",
+    "metric": "Chỉ số",
+    "noMetric": "Không lọc theo chỉ số",
+    "threshold": "Ngưỡng",
+    "thresholdError": "Chỉ hiện dòng có giá trị không vượt quá ngưỡng (càng thấp càng tốt)",
+    "thresholdR2": "Chỉ hiện dòng có R² không thấp hơn ngưỡng (càng cao càng tốt)",
+    "hideNoData": "Ẩn dòng chưa có dữ liệu",
+    "reset": "Đặt lại bộ lọc",
+    "exportCsv": "Xuất CSV",
+    "columns": {
+      "symbol": "Cổ phiếu",
+      "model": "Mô hình",
+      "evaluated": "Ngày đánh giá",
+      "trained": "Ngày huấn luyện",
+      "best": "Mô hình tốt nhất"
+    },
+    "noData": "Chưa có dữ liệu",
+    "best": "Tốt nhất",
+    "derivedMse": "MSE tính từ RMSE²",
+    "empty": "Không có dòng nào khớp bộ lọc.",
+    "summary": "{withData}/{total} dòng đã có chỉ số",
+    "models": {
+      "LINEAR_REGRESSION": "Hồi quy tuyến tính",
+      "RANDOM_FOREST": "Random Forest",
+      "XGBOOST": "XGBoost",
+      "SVR": "SVR",
+      "LSTM": "LSTM"
     }
   },
   "notFound": {

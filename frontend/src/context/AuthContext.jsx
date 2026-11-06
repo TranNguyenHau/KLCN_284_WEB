@@ -29,6 +29,8 @@ export function toAuthError(err) {
   const error = new Error(message);
   error.status = err?.response?.status;
   error.code = (payload && typeof payload === 'object' && payload.code) || err?.code || 'REQUEST_FAILED';
+  // Flask adds a machine-readable `reason` to business-rule refusals (LAST_ADMIN, SELF_DELETE, ...).
+  if (typeof body?.reason === 'string') error.reason = body.reason;
   const retry = Number(err?.response?.headers?.['retry-after']);
   if (Number.isFinite(retry) && retry > 0) error.retryAfter = retry;
   return error;
@@ -138,12 +140,17 @@ export function AuthProvider({ children, client: injected }) {
     },
     changePassword: (oldPassword, newPassword) =>
       authed(() => client.post('/auth/change-password', { old_password: oldPassword, new_password: newPassword })),
-    listUsers: () => authed(async () => unwrap(await client.get('/auth/users'))),
+    // Administrator area (Flask enforces the role: 403 for everybody else).
+    listUsers: () => authed(async () => unwrap(await client.get('/admin/users'))),
     createUser: ({ username, email, password, fullName, role }) =>
-      authed(async () => unwrap(await client.post('/auth/users', {
+      authed(async () => unwrap(await client.post('/admin/users', {
         ten_dang_nhap: username, email, password, vai_tro: role, ...(fullName ? { ho_ten: fullName } : {})
       }))),
-    updateUser: (id, patch) => authed(async () => unwrap(await client.patch(`/auth/users/${id}`, patch)))
+    updateUser: (id, patch) => authed(async () => unwrap(await client.patch(`/admin/users/${id}`, patch))),
+    deleteUser: (id) => authed(async () => unwrap(await client.delete(`/admin/users/${id}`))),
+    // Read-only model performance report: admin endpoint for the admin area, plain endpoint for every signed-in user.
+    modelPerformance: ({ admin = false, params } = {}) =>
+      authed(async () => unwrap(await client.get(admin ? '/admin/models/performance' : '/model-performance', { params })))
   }), [client, authed, refresh, setAnonymous]);
 
   const value = useMemo(() => ({

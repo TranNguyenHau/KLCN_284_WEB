@@ -19,9 +19,10 @@ export const USER = {
 export const ok = (data, status = 200) => ({ status, data: { data, error: null } });
 
 /** What axios rejects with for an HTTP error (Flask puts a string in `error`). */
-export function httpError(status, { headers = {}, message = 'server text that must never be shown' } = {}) {
+export function httpError(status, { headers = {}, message = 'server text that must never be shown', reason } = {}) {
   return Object.assign(new Error(`HTTP ${status}`), {
-    code: 'ERR_BAD_REQUEST', response: { status, headers, data: { data: null, error: message } }
+    code: 'ERR_BAD_REQUEST',
+    response: { status, headers, data: { data: null, error: message, ...(reason ? { reason } : {}) } }
   });
 }
 export const networkError = () => Object.assign(new Error('Network Error'), { code: 'ERR_NETWORK' });
@@ -40,7 +41,7 @@ export function fakeClient(handlers = {}) {
     if (result instanceof Error) throw result;
     return result;
   });
-  return { get: make('GET'), post: make('POST'), patch: make('PATCH'), calls };
+  return { get: make('GET'), post: make('POST'), patch: make('PATCH'), delete: make('DELETE'), calls };
 }
 
 export function renderWithAuth(ui, { client, route = '/', lang = 'en' } = {}) {

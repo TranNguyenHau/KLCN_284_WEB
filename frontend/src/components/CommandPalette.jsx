@@ -4,6 +4,7 @@ import { Command as CommandIcon, CornerDownLeft, Download, Moon, Search, Sparkle
 import { api } from '../services/api.js';
 import { useI18n } from '../i18n/index.jsx';
 import { useTheme } from '../hooks/useTheme.jsx';
+import { useAuth } from '../context/AuthContext.jsx';
 import { readRecents, rememberSymbol } from '../utils/recents.js';
 
 /** Cheap relevance score: earlier and shorter matches win, 0 means no match. */
@@ -14,6 +15,7 @@ function score(text, query) {
 }
 
 export default function CommandPalette({ open, onClose, contextSymbol }) {
+  const { isAdmin } = useAuth();
   const { t } = useI18n();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
@@ -64,7 +66,13 @@ export default function CommandPalette({ open, onClose, contextSymbol }) {
       { id: 'page-analysis', label: t('nav.analysis'), icon: Search, run: () => go(contextSymbol ? `/analysis/${contextSymbol}` : '/analysis/FPT') },
       { id: 'page-portfolio', label: t('nav.portfolio'), icon: Search, run: () => go('/portfolio') },
       { id: 'page-trading', label: t('nav.trading'), icon: Search, run: () => go('/trading') },
-      { id: 'page-news', label: t('nav.news'), icon: Search, run: () => go('/news') }
+      { id: 'page-news', label: t('nav.news'), icon: Search, run: () => go('/news') },
+      { id: 'page-models', label: t('nav.models'), icon: Search, run: () => go('/models') },
+      // Administration entries exist only for admins (the server enforces the role regardless).
+      ...(isAdmin ? [
+        { id: 'page-admin-users', label: t('nav.adminUsers'), icon: Search, run: () => go('/admin/users') },
+        { id: 'page-admin-models', label: t('nav.adminModels'), icon: Search, run: () => go('/admin/models') }
+      ] : [])
     ].filter((page) => score(page.label, q) > 0);
 
     const byId = new Map(stocks.map((stock) => [stock.symbol, stock]));
@@ -110,7 +118,7 @@ export default function CommandPalette({ open, onClose, contextSymbol }) {
       { key: 'actions', title: t('search.actions'), items: actionItems },
       { key: 'ai', title: t('search.ai'), items: aiItems }
     ].filter((section) => section.items.length > 0);
-  }, [query, stocks, recents, t, theme, contextSymbol]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [query, stocks, recents, t, theme, contextSymbol, isAdmin]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const flat = useMemo(() => sections.flatMap((section) => section.items), [sections]);
 
