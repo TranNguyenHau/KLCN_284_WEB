@@ -66,7 +66,6 @@ export default function CommandPalette({ open, onClose, contextSymbol }) {
       { id: 'page-analysis', label: t('nav.analysis'), icon: Search, run: () => go(contextSymbol ? `/analysis/${contextSymbol}` : '/analysis/FPT') },
       { id: 'page-portfolio', label: t('nav.portfolio'), icon: Search, run: () => go('/portfolio') },
       { id: 'page-trading', label: t('nav.trading'), icon: Search, run: () => go('/trading') },
-      { id: 'page-news', label: t('nav.news'), icon: Search, run: () => go('/news') },
       { id: 'page-models', label: t('nav.models'), icon: Search, run: () => go('/models') },
       // Administration entries exist only for admins (the server enforces the role regardless).
       ...(isAdmin ? [

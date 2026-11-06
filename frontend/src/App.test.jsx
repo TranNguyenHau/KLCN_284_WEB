@@ -15,7 +15,6 @@ vi.mock('./pages/StockDetail.jsx', () => ({ default: () => 'STOCK PAGE' }));
 vi.mock('./pages/TechnicalAnalysis.jsx', () => ({ default: () => 'ANALYSIS PAGE' }));
 vi.mock('./pages/Portfolio.jsx', () => ({ default: () => 'PORTFOLIO PAGE' }));
 vi.mock('./pages/Trading.jsx', () => ({ default: () => 'TRADING PAGE' }));
-vi.mock('./pages/News.jsx', () => ({ default: () => 'NEWS PAGE' }));
 vi.mock('./pages/Login.jsx', () => ({ default: () => 'LOGIN PAGE' }));
 vi.mock('./pages/Register.jsx', () => ({ default: () => 'REGISTER PAGE' }));
 vi.mock('./pages/Users.jsx', () => ({ default: () => 'ADMIN USERS PAGE' }));
@@ -72,6 +71,11 @@ describe('App routes: shared pages', () => {
 
   it('unknown address', async () => {
     open('/no/such/page', USER);
+    expect(await screen.findByText('NOT FOUND PAGE')).toBeInTheDocument();
+  });
+
+  it('the News page is gone: /news is just another unknown address', async () => {
+    open('/news', USER);
     expect(await screen.findByText('NOT FOUND PAGE')).toBeInTheDocument();
   });
 });

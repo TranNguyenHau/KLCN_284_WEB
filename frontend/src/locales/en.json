@@ -8,7 +8,6 @@
     "analysis": "Technical analysis",
     "portfolio": "Portfolio",
     "trading": "Paper trading",
-    "news": "Market news",
     "groupAnalysis": "Analysis",
     "groupAccount": "Account",
     "groupAdmin": "Administration",
@@ -70,7 +69,6 @@
   "status": {
     "loadingMarketOverview": "Loading market overview",
     "loadingPriceHistory": "Loading price history",
-    "loadingNews": "Loading news",
     "loadingPortfolio": "Loading portfolio",
     "calculatingIndicators": "Calculating indicators",
     "runningInference": "Running LSTM inference"
@@ -152,7 +150,6 @@
     "forecastDays": "{days}d forecast",
     "predictionPending": "Waiting for the LSTM prediction. The chart shows historical prices until it arrives.",
     "noForecastOnChart": "No forecast on the chart: {message}",
-    "newsTitle": "{symbol} news",
     "chartActual": "Actual price",
     "chartPredicted": "LSTM predicted price",
     "chartBand": "Confidence interval",
@@ -368,19 +365,9 @@
     "fee": "Fee"
   },
   "news": {
-    "title": "Market news",
-    "subtitle": "Sentiment is scored with a keyword lexicon on sample articles. Connect a news feed and an NLP model for production use.",
-    "allStocks": "All stocks",
-    "anySentiment": "Any sentiment",
-    "filterStock": "Filter by stock",
-    "filterSentiment": "Filter by sentiment",
-    "articles": "{count} articles",
-    "empty": "No articles match these filters.",
-    "summary": "Sentiment summary",
     "positive": "Positive",
     "neutral": "Neutral",
-    "negative": "Negative",
-    "method": "Scored by keyword lexicon"
+    "negative": "Negative"
   },
   "analysis": {
     "title": "Technical analysis: {symbol}",

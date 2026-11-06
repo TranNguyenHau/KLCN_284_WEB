@@ -7,7 +7,6 @@ import StockDetail from './pages/StockDetail.jsx';
 import TechnicalAnalysis from './pages/TechnicalAnalysis.jsx';
 import Portfolio from './pages/Portfolio.jsx';
 import Trading from './pages/Trading.jsx';
-import News from './pages/News.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Users from './pages/Users.jsx';
@@ -34,7 +33,6 @@ export default function App() {
             <Route path="analysis/:symbol" element={<TechnicalAnalysis />} />
             <Route path="portfolio" element={<Portfolio />} />
             <Route path="trading" element={<Trading />} />
-            <Route path="news" element={<News />} />
             {/* Read-only model performance report for every signed-in user. */}
             <Route path="models" element={<ModelPerformance />} />
             {/* Old address kept alive. */}

@@ -8,7 +8,6 @@
     "analysis": "Phân tích kỹ thuật",
     "portfolio": "Danh mục đầu tư",
     "trading": "Giao dịch mô phỏng",
-    "news": "Tin thị trường",
     "groupAnalysis": "Phân tích",
     "groupAccount": "Tài khoản",
     "groupAdmin": "Quản trị",
@@ -70,7 +69,6 @@
   "status": {
     "loadingMarketOverview": "Đang tải tổng quan thị trường",
     "loadingPriceHistory": "Đang tải lịch sử giá",
-    "loadingNews": "Đang tải tin tức",
     "loadingPortfolio": "Đang tải danh mục đầu tư",
     "calculatingIndicators": "Đang tính chỉ báo",
     "runningInference": "Đang chạy suy luận LSTM"
@@ -152,7 +150,6 @@
     "forecastDays": "Dự báo {days} ngày",
     "predictionPending": "Đang chờ dự đoán từ LSTM. Biểu đồ hiển thị giá lịch sử cho đến khi có kết quả.",
     "noForecastOnChart": "Không có dự báo trên biểu đồ: {message}",
-    "newsTitle": "Tin tức {symbol}",
     "chartActual": "Giá thực tế",
     "chartPredicted": "Giá dự đoán LSTM",
     "chartBand": "Khoảng tin cậy",
@@ -368,19 +365,9 @@
     "fee": "Phí"
   },
   "news": {
-    "title": "Tin thị trường",
-    "subtitle": "Sắc thái được chấm bằng từ điển từ khóa trên bài viết mẫu. Hãy kết nối nguồn tin và mô hình NLP cho môi trường thật.",
-    "allStocks": "Tất cả cổ phiếu",
-    "anySentiment": "Mọi sắc thái",
-    "filterStock": "Lọc theo cổ phiếu",
-    "filterSentiment": "Lọc theo sắc thái",
-    "articles": "{count} bài viết",
-    "empty": "Không có bài viết nào khớp bộ lọc.",
-    "summary": "Tóm tắt sắc thái",
     "positive": "Tích cực",
     "neutral": "Trung lập",
-    "negative": "Tiêu cực",
-    "method": "Chấm điểm bằng từ điển từ khóa"
+    "negative": "Tiêu cực"
   },
   "analysis": {
     "title": "Phân tích kỹ thuật: {symbol}",
