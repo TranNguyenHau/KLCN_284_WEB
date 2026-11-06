@@ -14,11 +14,11 @@ export function e02Symbol(raw) {
   return symbol;
 }
 
-export async function e02Get(path, params) {
+export async function e02Get(path, params, { signal } = {}) {
   try {
     // Calls made on behalf of a logged-in user carry that user's session cookie; Flask authenticates it.
     const cookie = requestContext.getStore()?.cookie;
-    const { data } = await client.get(path, { params, headers: cookie ? { Cookie: cookie } : undefined });
+    const { data } = await client.get(path, { params, signal, headers: cookie ? { Cookie: cookie } : undefined });
     return data;
   } catch (error) {
     if (error instanceof AppError) throw error;
