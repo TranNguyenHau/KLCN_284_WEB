@@ -27,6 +27,7 @@ export async function getHistory(rawSymbol) {
   if (!Number.isFinite(multiplier) || multiplier <= 0) throw new Error('STOCKTRAIN_PRICE_MULTIPLIER must be positive');
   const rows = (body.prices || []).map((x) => ({
     date: x.date,
+    priceToVnd: 1000 / multiplier,
     open: Number(x.open) * multiplier,
     high: Number(x.high) * multiplier,
     low: Number(x.low) * multiplier,
@@ -47,7 +48,7 @@ export async function getQuote(rawSymbol) {
   const change = last.close - previousClose;
   return {
     symbol, name: meta.name, sector: meta.sector, exchange: meta.exchange,
-    price: last.close, previousClose, change,
+    price: last.close, priceToVnd: last.priceToVnd, previousClose, change,
     changePercent: previousClose ? change / previousClose * 100 : 0,
     open: last.open, high: last.high, low: last.low, volume: last.volume,
     asOf: last.date, dataSource: name, isRealtime

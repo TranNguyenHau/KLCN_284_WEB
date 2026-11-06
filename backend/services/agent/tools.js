@@ -23,6 +23,7 @@ export const TOOLS = {
       return {
         symbol,
         lastDate: rows.at(-1).date,
+        priceToVnd: rows.at(-1).priceToVnd,
         change30dPercent: pct(last, closes.at(-23)),
         change90dPercent: pct(last, closes.at(-67)),
         high52w: Math.max(...rows.map((r) => r.high)),

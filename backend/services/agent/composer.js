@@ -4,7 +4,9 @@ import { MESSAGES } from './composerMessages.js';
 
 const fill = (template, vars) => String(template).replace(/\{(\w+)\}/g, (match, key) => (vars[key] == null ? match : String(vars[key])));
 
-const money = (value, language) => `${Math.round(value).toLocaleString(localeOf(language))} VND`;
+const money = (value, language, priceToVnd = 1) => priceToVnd === 1000
+  ? `${Number(value).toLocaleString(localeOf(language), { maximumFractionDigits: 6 })} ${language === 'vi' ? 'nghìn VND' : 'thousand VND'}`
+  : `${Math.round(value * priceToVnd).toLocaleString(localeOf(language))} VND`;
 
 function decimal(value, language, digits = 2) {
   return Number(round(value, digits)).toLocaleString(localeOf(language), { minimumFractionDigits: digits, maximumFractionDigits: digits });
@@ -37,7 +39,7 @@ export function composeReply({ symbol, evidence, failures = {}, language }) {
     if (q) {
       lines.push(fill(m.quote, {
         symbol,
-        price: money(q.price, lang),
+        price: money(q.price, lang, q.priceToVnd),
         change: signedPercent(q.changePercent, lang),
         asOf: q.asOf,
         source: q.dataSource,
@@ -48,8 +50,8 @@ export function composeReply({ symbol, evidence, failures = {}, language }) {
       lines.push(fill(m.trend, {
         d30: signedPercent(h.change30dPercent, lang),
         d90: signedPercent(h.change90dPercent, lang),
-        low: money(h.low52w, lang),
-        high: money(h.high52w, lang)
+        low: money(h.low52w, lang, h.priceToVnd),
+        high: money(h.high52w, lang, h.priceToVnd)
       }));
     }
     out.push(`**${m.marketDataTitle}**\n${lines.join(' ')}`);
