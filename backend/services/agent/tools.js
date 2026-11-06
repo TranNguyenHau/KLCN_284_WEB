@@ -1,5 +1,5 @@
 import { mcpClient, MCP_TOOLS } from '../mcpClient.js';
-import { getStoredForecast } from '../storedForecastService.js';
+import { getStoredForecast, storedForecastErrorMessage } from '../storedForecastService.js';
 import { getQuote, getFullHistory, getMarketOverview } from '../marketDataService.js';
 import { getPrediction } from '../predictionService.js';
 import { computeIndicators } from '../indicatorService.js';
@@ -68,6 +68,6 @@ export async function runTool(name, args, options = {}) {
   try {
     return { tool: name, ok: true, data: await (Object.hasOwn(TOOLS, name) ? TOOLS[name].run(args, options) : Promise.reject(new Error('Công cụ không được phép.'))) };
   } catch (err) {
-    return { tool: name, ok: false, error: { code: err.code || 'TOOL_ERROR', message: name.startsWith('get_stored') || ['get_risk_return', 'get_volatility_forecast'].includes(name) ? 'Dự báo đã lưu hiện chưa sẵn sàng.' : err.message } };
+    return { tool: name, ok: false, error: { code: err.code || 'TOOL_ERROR', message: storedForecastErrorMessage(err.code) || err.message } };
   }
 }

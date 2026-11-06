@@ -1,3 +1,4 @@
+import { storedForecastErrorMessage } from '../storedForecastService.js';
 import { runTool } from './tools.js';
 import { composeReply, composeMarket, helpText } from './composer.js';
 import { composeForecast } from './forecastPresenter.js';
@@ -60,7 +61,7 @@ export function createAgent({ tool = runTool, stocks = listStocks, llm = generat
           if (signal.aborted) return;
           toolCalls.push({ tool: name, ok: result.ok });
           if (result.ok) evidence[mappings[name]] = result.data;
-          else if (forecast) evidence.forecastErrors.push(result.error?.code === 'DEADLINE_EXCEEDED' ? 'Đã quá thời gian gọi dữ liệu dự báo. Vui lòng thử lại; phần dữ liệu khác vẫn được hiển thị.' : `Chưa có dữ liệu từ ${name}; dịch vụ có thể đang tắt hoặc chưa sẵn sàng.`);
+          else if (forecast) evidence.forecastErrors.push(storedForecastErrorMessage(result.error?.code) || (result.error?.code === 'DEADLINE_EXCEEDED' ? 'Đã quá thời gian gọi dữ liệu dự báo. Vui lòng thử lại; phần dữ liệu khác vẫn được hiển thị.' : `Chưa có dữ liệu từ ${name}; dịch vụ có thể đang tắt hoặc chưa sẵn sàng.`));
         }));
         const fallback = render();
         // Forecast answers are deterministic: untrusted tool strings never become model instructions.
