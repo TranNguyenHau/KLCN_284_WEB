@@ -6,16 +6,17 @@ import { ADMIN, USER, fakeClient, httpError, ok, renderWithAuth } from '../test/
 const R = (o) => ({
   ma_co_phieu: 1, ky_hieu: 'FPT', ten_cong_ty: 'FPT Corp', ma_mo_hinh: 1, loai_mo_hinh: 'LSTM', la_mo_hinh_tot_nhat: false,
   ngay_huan_luyen: '2026-10-01T08:00:00+00:00', tap_du_lieu: 'TEST', mae: 0.03, mse: 0.0016, rmse: 0.04, r2: 0.31,
-  do_chinh_xac_huong: 55.5, ngay_danh_gia: '2026-10-02T08:00:00+00:00', mse_tinh_tu_rmse: false, co_du_lieu: true, ...o
+  do_chinh_xac_huong: 55.5, ngay_danh_gia: '2026-10-02T08:00:00+00:00', mse_tinh_tu_rmse: false, co_du_lieu: true,
+  so_mau: 9, nguon: 'tinh_tu_du_bao', ...o
 });
-const NONE = { mae: null, mse: null, rmse: null, r2: null, ngay_danh_gia: null, co_du_lieu: false };
+const NONE = { mae: null, mse: null, rmse: null, r2: null, ngay_danh_gia: null, co_du_lieu: false, so_mau: null, nguon: null };
 const ROWS = [
   R({ ma_mo_hinh: 1, loai_mo_hinh: 'LSTM' }),
   R({ ma_mo_hinh: 2, loai_mo_hinh: 'XGBOOST', mae: 0.01, rmse: 0.02, mse: 0.0004, r2: 0.5, la_mo_hinh_tot_nhat: true, mse_tinh_tu_rmse: true }),
   R({ ma_co_phieu: 2, ky_hieu: 'HPG', ten_cong_ty: 'Hoa Phat', ma_mo_hinh: 3, loai_mo_hinh: 'LSTM', mae: 0.02, rmse: 0.03, mse: 0.0009, r2: -0.1 }),
   R({ ma_co_phieu: 3, ky_hieu: 'VNM', ten_cong_ty: 'Vinamilk', ma_mo_hinh: null, loai_mo_hinh: null, ngay_huan_luyen: null, ...NONE })
 ];
-const payload = (rows, tap = 'TEST') => ({ tap_du_lieu: tap, tong_so_dong: rows.length, so_dong_co_du_lieu: rows.filter((r) => r.co_du_lieu).length, rows });
+const payload = (rows, tap = 'TEST') => ({ tap_du_lieu: tap, so_mau_toi_thieu: 5, tong_so_dong: rows.length, so_dong_co_du_lieu: rows.filter((r) => r.co_du_lieu).length, rows });
 
 function mount({ admin = false, me = admin ? ADMIN : USER, rows = ROWS, extra = {}, lang } = {}) {
   const endpoint = admin ? 'GET /admin/models/performance' : 'GET /model-performance';
@@ -176,6 +177,59 @@ describe('ModelPerformanceReport: filters and sorting', () => {
   });
 });
 
+describe('ModelPerformanceReport: samples and source', () => {
+  it('shows the number of samples and where each row comes from', async () => {
+    const stored = R({ ma_mo_hinh: 4, ky_hieu: 'SSI', ma_co_phieu: 4, loai_mo_hinh: 'SVR', so_mau: 40, nguon: 'luu_san' });
+    mount({ rows: [...ROWS, stored] });
+    expect(await screen.findByTestId('perf-row-SSI-SVR')).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: /Samples/ })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Source' })).toBeInTheDocument();
+    const computed = within(screen.getByTestId('perf-row-FPT-LSTM'));
+    expect(computed.getByText('9')).toBeInTheDocument();
+    expect(computed.getByText('Computed from forecasts')).toBeInTheDocument();
+    const fixed = within(screen.getByTestId('perf-row-SSI-SVR'));
+    expect(fixed.getByText('40')).toBeInTheDocument();
+    expect(fixed.getByText('Stored')).toBeInTheDocument();
+  });
+
+  it('too few samples keeps the "no data" row and says how many there are against the minimum', async () => {
+    const few = R({ ma_mo_hinh: 5, ky_hieu: 'SSI', ma_co_phieu: 4, loai_mo_hinh: 'SVR', ...NONE, so_mau: 3 });
+    mount({ rows: [...ROWS, few] });
+    const row = within(await screen.findByTestId('perf-row-SSI-SVR'));
+    expect(row.getByText('Not enough data (3 of at least 5 samples)')).toBeInTheDocument();
+    expect(row.getByText('3')).toBeInTheDocument();
+    expect(within(screen.getByTestId('perf-row-VNM-none')).getByText('No data yet')).toBeInTheDocument(); // no forecasts at all
+  });
+
+  it('explains the computation (formula and caveat) whenever a computed row is visible, and not otherwise', async () => {
+    mount();
+    await screen.findByTestId('perf-row-FPT-LSTM');
+    expect(screen.getByText(/at least 5 samples\)\. The 5-session windows overlap/)).toBeInTheDocument();
+    expect(screen.getByText(/MAE = mean \|forecast − actual\|/)).toBeInTheDocument();
+    fireEvent.change(screen.getByLabelText('Stock'), { target: { value: 'VNM' } }); // only the no-data row left
+    expect(screen.queryByText(/MAE = mean/)).not.toBeInTheDocument();
+  });
+
+  it('rows can be sorted by the number of samples, missing counts last', async () => {
+    const stored = R({ ma_mo_hinh: 4, ky_hieu: 'SSI', ma_co_phieu: 4, loai_mo_hinh: 'SVR', so_mau: 40, nguon: 'luu_san' });
+    mount({ rows: [...ROWS, stored] });
+    await screen.findByTestId('perf-row-SSI-SVR');
+    const header = () => screen.getByRole('columnheader', { name: /Samples/ });
+    fireEvent.click(within(header()).getByRole('button'));
+    expect(order()[order().length - 2]).toBe('SSI-SVR'); // 40 is the largest of 9, 9, 9, 40; VNM (no count) stays last
+    expect(order().at(-1)).toBe('VNM-none');
+    expect(header()).toHaveAttribute('aria-sort', 'ascending');
+  });
+
+  it('Vietnamese labels for the new columns and sources', async () => {
+    mount({ lang: 'vi' });
+    expect(await screen.findByRole('columnheader', { name: /Số mẫu/ })).toBeInTheDocument();
+    expect(screen.getByRole('columnheader', { name: 'Nguồn' })).toBeInTheDocument();
+    expect(within(screen.getByTestId('perf-row-FPT-LSTM')).getByText('Tính từ dự báo')).toBeInTheDocument();
+    expect(screen.getByText(/Thực tế = giá đóng cửa sau 5 phiên/)).toBeInTheDocument();
+  });
+});
+
 describe('ModelPerformanceReport: pure helpers', () => {
   it('filterRows and sortRows', () => {
     expect(filterRows(ROWS, { symbol: '', model: '', metric: 'mae', threshold: 'abc', hideNoData: false })).toHaveLength(4); // not a number: ignored
@@ -189,6 +243,9 @@ describe('ModelPerformanceReport: pure helpers', () => {
     const lines = csv.split('\r\n');
     expect(lines).toHaveLength(3);
     expect(lines[1]).toContain('"A""B"');
-    expect(lines[2]).toBe('"VNM","","TEST","","","","","",""');
+    expect(lines[2]).toBe('"VNM","","TEST","","","","","","","",""'); // symbol, model, dataset, 4 metrics, samples, source, dates
+    expect(lines[0]).toContain('modelReport.columns.samples');
+    expect(lines[0]).toContain('modelReport.columns.source');
+    expect(lines[1]).toContain('"9","modelReport.sources.tinh_tu_du_bao"');
   });
 });

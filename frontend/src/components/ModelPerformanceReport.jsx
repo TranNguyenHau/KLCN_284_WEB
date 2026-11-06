@@ -6,7 +6,7 @@ import { useI18n } from '../i18n/index.jsx';
 
 const METRICS = ['mae', 'mse', 'rmse', 'r2'];
 const DATASETS = ['TRAIN', 'VAL', 'TEST'];
-const SORTABLE = ['ky_hieu', 'loai_mo_hinh', 'mae', 'mse', 'rmse', 'r2', 'ngay_danh_gia'];
+const SORTABLE = ['ky_hieu', 'loai_mo_hinh', 'mae', 'mse', 'rmse', 'r2', 'so_mau', 'ngay_danh_gia'];
 const EMPTY_FILTERS = { symbol: '', model: '', metric: '', threshold: '', hideNoData: false };
 
 const fmtMetric = (value) => (value === null || value === undefined ? '—' : Number(value).toFixed(4));
@@ -43,10 +43,12 @@ export function sortRows(rows, sort, metric) {
 
 export function toCsv(rows, t) {
   const head = [t('modelReport.columns.symbol'), t('modelReport.columns.model'), t('modelReport.dataset'),
-    'MAE', 'MSE', 'RMSE', 'R2', t('modelReport.columns.evaluated'), t('modelReport.columns.trained')];
+    'MAE', 'MSE', 'RMSE', 'R2', t('modelReport.columns.samples'), t('modelReport.columns.source'),
+    t('modelReport.columns.evaluated'), t('modelReport.columns.trained')];
   const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const lines = rows.map((r) => [r.ky_hieu, r.loai_mo_hinh ? t(`modelReport.models.${r.loai_mo_hinh}`) : '', r.tap_du_lieu,
-    r.mae, r.mse, r.rmse, r.r2, r.ngay_danh_gia || '', r.ngay_huan_luyen || ''].map(cell).join(','));
+    r.mae, r.mse, r.rmse, r.r2, r.so_mau, r.nguon ? t(`modelReport.sources.${r.nguon}`) : '',
+    r.ngay_danh_gia || '', r.ngay_huan_luyen || ''].map(cell).join(','));
   return [head.map(cell).join(','), ...lines].join('\r\n');
 }
 
@@ -81,6 +83,8 @@ export default function ModelPerformanceReport({ admin = false }) {
   const toggleSort = (key) => setSort((s) => (s.key === key ? { key, dir: s.dir === 'asc' ? 'desc' : 'asc' } : { key, dir: 'asc' }));
   const fmtDate = (iso) => (iso ? new Date(iso).toLocaleDateString(locale) : '—');
   const hasDerived = visible.some((r) => r.mse_tinh_tu_rmse);
+  const hasComputed = visible.some((r) => r.nguon === 'tinh_tu_du_bao');
+  const minSamples = state.data?.so_mau_toi_thieu ?? 5;
 
   function exportCsv() {
     const blob = new Blob(['﻿', toCsv(visible, t)], { type: 'text/csv;charset=utf-8' });
@@ -179,6 +183,8 @@ export default function ModelPerformanceReport({ admin = false }) {
                   <Th label={t('modelReport.columns.symbol')} sortKey="ky_hieu" />
                   <Th label={t('modelReport.columns.model')} sortKey="loai_mo_hinh" />
                   {METRICS.map((m) => <Th key={m} label={m.toUpperCase()} sortKey={m} align="text-right" />)}
+                  <Th label={t('modelReport.columns.samples')} sortKey="so_mau" align="text-right" />
+                  <Th label={t('modelReport.columns.source')} />
                   <Th label={t('modelReport.columns.evaluated')} sortKey="ngay_danh_gia" />
                   {admin && <Th label={t('modelReport.columns.trained')} />}
                   {admin && <Th label={t('modelReport.columns.best')} />}
@@ -196,8 +202,14 @@ export default function ModelPerformanceReport({ admin = false }) {
                         </td>
                       ))
                     ) : (
-                      <td colSpan={METRICS.length} className="px-3 py-2 text-center text-muted">{t('modelReport.noData')}</td>
+                      <td colSpan={METRICS.length} className="px-3 py-2 text-center text-muted">
+                        {row.so_mau != null && row.so_mau < minSamples
+                          ? t('modelReport.notEnough', { n: row.so_mau, min: minSamples })
+                          : t('modelReport.noData')}
+                      </td>
                     )}
+                    <td className="px-3 py-2 text-right font-mono">{row.so_mau ?? '—'}</td>
+                    <td className="px-3 py-2 text-muted">{row.nguon ? t(`modelReport.sources.${row.nguon}`) : '—'}</td>
                     <td className="px-3 py-2 text-muted">{fmtDate(row.ngay_danh_gia)}</td>
                     {admin && <td className="px-3 py-2 text-muted">{fmtDate(row.ngay_huan_luyen)}</td>}
                     {admin && <td className="px-3 py-2">{row.la_mo_hinh_tot_nhat ? <span className="chip bg-up/15 text-up">{t('modelReport.best')}</span> : '—'}</td>}
@@ -206,6 +218,12 @@ export default function ModelPerformanceReport({ admin = false }) {
               </tbody>
             </table>
             {hasDerived && <p className="border-t border-line/70 px-4 py-2 text-xs text-muted">* {t('modelReport.derivedMse')}</p>}
+            {hasComputed && (
+              <div className="space-y-1 border-t border-line/70 px-4 py-3 text-xs text-muted">
+                <p>{t('modelReport.computedNote', { min: minSamples })}</p>
+                <p>{t('modelReport.formula')}</p>
+              </div>
+            )}
           </div>
         )}
       </Card>

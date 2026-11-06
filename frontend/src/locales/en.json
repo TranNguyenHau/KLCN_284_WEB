@@ -555,13 +555,22 @@
       "model": "Model",
       "evaluated": "Evaluated",
       "trained": "Trained",
-      "best": "Best model"
+      "best": "Best model",
+      "samples": "Samples",
+      "source": "Source"
     },
     "noData": "No data yet",
     "best": "Best",
     "derivedMse": "MSE computed as RMSE²",
     "empty": "No rows match the filters.",
     "summary": "{withData} of {total} rows have metrics",
+    "sources": {
+      "luu_san": "Stored",
+      "tinh_tu_du_bao": "Computed from forecasts"
+    },
+    "notEnough": "Not enough data ({n} of at least {min} samples)",
+    "computedNote": "Computed from the stored forecasts against the real closing prices 5 sessions later (at least {min} samples). The 5-session windows overlap and the sample is small, so read the numbers as indicative only.",
+    "formula": "MAE = mean |forecast − actual|; MSE = mean (forecast − actual)²; RMSE = √MSE; R² = 1 − Σ(forecast − actual)² / Σ(actual − mean actual)². Actual = close 5 sessions later ÷ close on the forecast day − 1.",
     "models": {
       "LINEAR_REGRESSION": "Linear Regression",
       "RANDOM_FOREST": "Random Forest",

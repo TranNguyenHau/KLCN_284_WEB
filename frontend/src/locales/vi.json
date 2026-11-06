@@ -555,13 +555,22 @@
       "model": "Mô hình",
       "evaluated": "Ngày đánh giá",
       "trained": "Ngày huấn luyện",
-      "best": "Mô hình tốt nhất"
+      "best": "Mô hình tốt nhất",
+      "samples": "Số mẫu",
+      "source": "Nguồn"
     },
     "noData": "Chưa có dữ liệu",
     "best": "Tốt nhất",
     "derivedMse": "MSE tính từ RMSE²",
     "empty": "Không có dòng nào khớp bộ lọc.",
     "summary": "{withData}/{total} dòng đã có chỉ số",
+    "sources": {
+      "luu_san": "Số lưu sẵn",
+      "tinh_tu_du_bao": "Tính từ dự báo"
+    },
+    "notEnough": "Chưa đủ dữ liệu ({n}/tối thiểu {min} mẫu)",
+    "computedNote": "Tính từ các dự báo đã lưu đối chiếu với giá đóng cửa thực tế sau 5 phiên (tối thiểu {min} mẫu). Các cửa sổ 5 phiên chồng lấn và số mẫu còn ít, nên chỉ mang tính tham khảo.",
+    "formula": "MAE = trung bình |dự báo − thực tế|; MSE = trung bình (dự báo − thực tế)²; RMSE = √MSE; R² = 1 − Σ(dự báo − thực tế)² / Σ(thực tế − trung bình thực tế)². Thực tế = giá đóng cửa sau 5 phiên ÷ giá đóng cửa ngày dự báo − 1.",
     "models": {
       "LINEAR_REGRESSION": "Hồi quy tuyến tính",
       "RANDOM_FOREST": "Random Forest",
