@@ -2,6 +2,7 @@ export const timeoutError = () => Object.assign(new Error('Đã quá thời gian
 
 // Reject even when a dependency ignores cancellation. Observe late rejections as well.
 export async function bounded(work, { signal, timeoutMs = 10000 } = {}) {
+  if (signal?.aborted) throw timeoutError();
   const controller = new AbortController();
   let timer;
   let onAbort;
@@ -12,7 +13,6 @@ export async function bounded(work, { signal, timeoutMs = 10000 } = {}) {
     if (signal?.aborted) onAbort();
   });
   try {
-    if (signal?.aborted) throw timeoutError();
     return await Promise.race([cancelled, Promise.resolve().then(() => work(controller.signal))]);
   } finally {
     clearTimeout(timer);

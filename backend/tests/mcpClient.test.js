@@ -64,3 +64,12 @@ test('tool error payloads are not cached or exposed as instructions', async () =
   for (let n = 0; n < 2; n++) await assert.rejects(client.call('predict_stock', { symbol: 'FPT' }), { code: 'MCP_RESULT_ERROR' });
   assert.equal(seen.calls.length, 2);
 });
+
+test('already cancelled deadline never starts work or produces a late unhandled rejection', async () => {
+  const { bounded } = await import('../services/deadline.js');
+  const controller = new AbortController(); controller.abort();
+  let called = false;
+  await assert.rejects(bounded(() => { called = true; }, { signal: controller.signal }), { code: 'DEADLINE_EXCEEDED' });
+  await new Promise((r) => setTimeout(r, 5));
+  assert.equal(called, false);
+});
