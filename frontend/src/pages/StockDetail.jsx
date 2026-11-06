@@ -8,11 +8,10 @@ import PriceChange from '../components/PriceChange.jsx';
 import PredictionPanel from '../components/PredictionPanel.jsx';
 import E02PredictionPanel from '../components/E02PredictionPanel.jsx';
 import RiskReturnCard from '../components/RiskReturnCard.jsx';
-import SentimentBadge from '../components/SentimentBadge.jsx';
 import Stat from '../components/Stat.jsx';
 import { Skeleton, SkeletonChart } from '../components/Skeleton.jsx';
 import { Card, CardHeader } from '../components/Card.jsx';
-import { ErrorBox, LoadingBlock } from '../components/StatusViews.jsx';
+import { ErrorBox } from '../components/StatusViews.jsx';
 import CandleChart from '../components/charts/CandleChart.jsx';
 import PriceChart from '../components/charts/PriceChart.jsx';
 import { useApi } from '../hooks/useApi.js';
@@ -21,7 +20,7 @@ import { useLocalStorage } from '../hooks/useLocalStorage.js';
 import { useToast } from '../hooks/useToast.jsx';
 import { api } from '../services/api.js';
 import { downloadHistoryCsv, openSummaryReport } from '../utils/export.js';
-import { fmtCompact, fmtPrice, timeAgo } from '../utils/format.js';
+import { fmtCompact, fmtPrice } from '../utils/format.js';
 import { rememberSymbol } from '../utils/recents.js';
 
 const RANGES = ['1M', '3M', '6M', '1Y'];
@@ -64,7 +63,6 @@ export default function StockDetail() {
   const prediction = useApi((signal) => api.prediction(symbol, days, { signal }), [symbol, days], { enabled: !isE02 });
   const e02Prediction = useApi((signal) => api.e02Latest(symbol, { signal }), [symbol], { enabled: isE02 });
   const indicators = useApi((signal) => api.indicators(symbol, range, { signal }), [symbol, range]);
-  const news = useApi((signal) => api.news({ symbol }, { signal }), [symbol]);
   const watchlist = useApi(api.watchlist, []);
 
   useEffect(() => rememberSymbol(symbol), [symbol]);
@@ -241,27 +239,10 @@ export default function StockDetail() {
         </div>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-2">
         {isE02 ? <E02PredictionPanel state={e02Prediction} symbol={symbol} onRetry={e02Prediction.reload} />
           : <PredictionPanel state={prediction} days={days} onRetry={prediction.reload} />}
         <PriceAlertWidget symbol={symbol} price={quoteData?.price} />
-        <Card>
-          <CardHeader title={t('stock.newsTitle', { symbol })} right={news.data && <SentimentBadge label={news.data.summary.label} score={news.data.summary.averageScore} />} />
-          {news.loading && !news.data && <LoadingBlock height="h-32" />}
-          {news.error && <ErrorBox error={news.error} onRetry={news.reload} />}
-          {news.data && (
-            <ul className="divide-y divide-line/60">
-              {news.data.articles.slice(0, 5).map((article) => (
-                <li key={article.id} className="px-4 py-3">
-                  <div className="text-sm font-medium">{article.title}</div>
-                  <div className="mt-1 flex items-center gap-2 text-xs text-muted">
-                    {timeAgo(article.publishedAt, t)} <SentimentBadge label={article.sentiment.label} />
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
       </div>
 
       {isE02 && <RiskReturnCard symbol={symbol} />}

@@ -8,11 +8,13 @@
     "analysis": "Technical analysis",
     "portfolio": "Portfolio",
     "trading": "Paper trading",
-    "news": "Market news",
     "groupAnalysis": "Analysis",
     "groupAccount": "Account",
     "groupAdmin": "Administration",
-    "users": "Users"
+    "users": "Users",
+    "models": "Model performance",
+    "adminUsers": "User management",
+    "adminModels": "Model management"
   },
   "common": {
     "loading": "Loading",
@@ -67,7 +69,6 @@
   "status": {
     "loadingMarketOverview": "Loading market overview",
     "loadingPriceHistory": "Loading price history",
-    "loadingNews": "Loading news",
     "loadingPortfolio": "Loading portfolio",
     "calculatingIndicators": "Calculating indicators",
     "runningInference": "Running LSTM inference"
@@ -149,7 +150,6 @@
     "forecastDays": "{days}d forecast",
     "predictionPending": "Waiting for the LSTM prediction. The chart shows historical prices until it arrives.",
     "noForecastOnChart": "No forecast on the chart: {message}",
-    "newsTitle": "{symbol} news",
     "chartActual": "Actual price",
     "chartPredicted": "LSTM predicted price",
     "chartBand": "Confidence interval",
@@ -365,19 +365,9 @@
     "fee": "Fee"
   },
   "news": {
-    "title": "Market news",
-    "subtitle": "Sentiment is scored with a keyword lexicon on sample articles. Connect a news feed and an NLP model for production use.",
-    "allStocks": "All stocks",
-    "anySentiment": "Any sentiment",
-    "filterStock": "Filter by stock",
-    "filterSentiment": "Filter by sentiment",
-    "articles": "{count} articles",
-    "empty": "No articles match these filters.",
-    "summary": "Sentiment summary",
     "positive": "Positive",
     "neutral": "Neutral",
-    "negative": "Negative",
-    "method": "Scored by keyword lexicon"
+    "negative": "Negative"
   },
   "analysis": {
     "title": "Technical analysis: {symbol}",
@@ -498,6 +488,86 @@
       "creating": "Creating…",
       "updated": "User updated.",
       "created": "User created."
+    }
+  },
+  "admin": {
+    "title": "Administration",
+    "badge": "Administrators only",
+    "subtitle": "Manage accounts and review the forecasting models.",
+    "tabs": {
+      "users": "User management",
+      "models": "Model management"
+    },
+    "users": {
+      "searchPlaceholder": "Search by username, name or email",
+      "searchLabel": "Search accounts",
+      "roleFilter": "Filter by role",
+      "allRoles": "All roles",
+      "fullName": "Full name",
+      "created": "Created",
+      "edit": "Edit",
+      "delete": "Delete",
+      "editTitle": "Edit account",
+      "save": "Save",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "deleteTitle": "Delete account",
+      "deleteBody": "Delete the account \"{name}\"? This cannot be undone. To keep its data, disable the account instead.",
+      "deleteConfirm": "Delete",
+      "deleting": "Deleting…",
+      "noMatch": "No account matches the filter.",
+      "saved": "Account updated.",
+      "deleted": "Account deleted.",
+      "count": "{shown} of {total} accounts"
+    },
+    "errors": {
+      "emailTaken": "That email is already used by another account.",
+      "selfDelete": "You cannot delete the account you are signed in with.",
+      "lastAdminDelete": "The last active administrator cannot be deleted.",
+      "hasRelated": "This account already has related data (chatbot conversations), so it cannot be deleted. Disable it instead.",
+      "notFound": "That account no longer exists."
+    }
+  },
+  "modelReport": {
+    "title": "Model performance report",
+    "subtitleUser": "Accuracy of the forecasting models per stock (read-only).",
+    "subtitleAdmin": "Evaluation results per stock and model. Filter, sort and export to compare.",
+    "dataset": "Dataset",
+    "datasets": {
+      "TRAIN": "Train",
+      "VAL": "Validation",
+      "TEST": "Test"
+    },
+    "symbol": "Stock",
+    "allSymbols": "All stocks",
+    "model": "Model",
+    "allModels": "All models",
+    "metric": "Metric",
+    "noMetric": "No metric filter",
+    "threshold": "Threshold",
+    "thresholdError": "Show rows with a value at most this (lower is better)",
+    "thresholdR2": "Show rows with R² at least this (higher is better)",
+    "hideNoData": "Hide rows without data",
+    "reset": "Reset filters",
+    "exportCsv": "Export CSV",
+    "columns": {
+      "symbol": "Stock",
+      "model": "Model",
+      "evaluated": "Evaluated",
+      "trained": "Trained",
+      "best": "Best model"
+    },
+    "noData": "No data yet",
+    "best": "Best",
+    "derivedMse": "MSE computed as RMSE²",
+    "empty": "No rows match the filters.",
+    "summary": "{withData} of {total} rows have metrics",
+    "models": {
+      "LINEAR_REGRESSION": "Linear Regression",
+      "RANDOM_FOREST": "Random Forest",
+      "XGBOOST": "XGBoost",
+      "SVR": "SVR",
+      "LSTM": "LSTM"
     }
   },
   "notFound": {

@@ -2,19 +2,29 @@ import express from 'express';
 import { AppError } from '../utils/errors.js';
 
 /**
- * Forward-only proxy for Flask's /api/auth/*. Express decides nothing here: it relays the request
- * (JSON body, Cookie, the CSRF header, client IP) and returns Flask's answer unchanged, including
- * Set-Cookie and Retry-After. Only a fixed allowlist of method + path pairs is relayed.
+ * Forward-only proxy for Flask's /api/auth/* and /api/admin/*. Express decides nothing here: it relays the
+ * request (JSON body, Cookie, the CSRF header, client IP) and returns Flask's answer unchanged, including
+ * Set-Cookie and Retry-After. Only a fixed allowlist of method + path pairs is relayed (optionally with a
+ * fixed list of query parameters). Flask alone decides who may call what (401 / 403).
+ *
+ * /auth/* is mounted BEFORE requireAuth (login and register need no session). /admin/* is mounted AFTER
+ * requireAuth and the CSRF check, so an anonymous call never reaches it; Flask still checks the admin role.
  */
-const ROUTES = Object.freeze([
+// entry: [METHOD, path regex, optional list of query parameters to relay]
+export const AUTH_ROUTES = Object.freeze([
   ['POST', /^\/auth\/login$/],
   ['POST', /^\/auth\/register$/],
   ['POST', /^\/auth\/logout$/],
   ['POST', /^\/auth\/change-password$/],
   ['GET', /^\/auth\/me$/],
-  ['GET', /^\/auth\/users$/],
-  ['POST', /^\/auth\/users$/],
-  ['PATCH', /^\/auth\/users\/\d{1,9}$/],
+]);
+
+export const ADMIN_ROUTES = Object.freeze([
+  ['GET', /^\/admin\/users$/],
+  ['POST', /^\/admin\/users$/],
+  ['PATCH', /^\/admin\/users\/\d{1,9}$/],
+  ['DELETE', /^\/admin\/users\/\d{1,9}$/],
+  ['GET', /^\/admin\/models\/performance$/, ['ky_hieu', 'tap_du_lieu']],
 ]);
 
 // 5xx, redirects and anything unexpected from Flask become a generic 502 (nothing leaks).
@@ -26,15 +36,17 @@ export function createAuthProxy(options = {}) {
   const fetchImpl = options.fetchImpl || globalThis.fetch;
   const timeoutMs = Number.isFinite(options.timeoutMs) ? options.timeoutMs : 15000;
   const cache = options.cache; // optional: { invalidate(cookie), clear() }
+  const routes = options.routes || AUTH_ROUTES;
+  const prefix = options.prefix || '/auth';
   const logger = options.logger || console;
   if (!baseUrl) throw new Error('authProxy needs the Flask origin (baseUrl)');
   new URL(baseUrl);
 
   const router = express.Router();
   router.use(async (req, res, next) => {
-    if (!req.path.startsWith('/auth/') && req.path !== '/auth') return next();
-    const allowed = ROUTES.some(([method, re]) => method === req.method && re.test(req.path));
-    if (!allowed) return next(new AppError(404, 'NOT_FOUND', `Route ${req.method} ${req.originalUrl} not found`));
+    if (!req.path.startsWith(`${prefix}/`) && req.path !== prefix) return next();
+    const route = routes.find(([method, re]) => method === req.method && re.test(req.path));
+    if (!route) return next(new AppError(404, 'NOT_FOUND', `Route ${req.method} ${req.originalUrl} not found`));
 
     const headers = { Accept: 'application/json' };
     if (req.headers.cookie) headers.Cookie = req.headers.cookie;
@@ -50,7 +62,12 @@ export function createAuthProxy(options = {}) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      const upstream = await fetchImpl(new URL(`/api${req.path}`, baseUrl), {
+      const url = new URL(`/api${req.path}`, baseUrl); // path comes from the allowlist regex, never free text
+      for (const name of route[2] || []) {
+        const value = Array.isArray(req.query[name]) ? req.query[name][0] : req.query[name];
+        if (typeof value === 'string') url.searchParams.set(name, value); // Flask validates the values
+      }
+      const upstream = await fetchImpl(url, {
         method: req.method, headers, body, signal: controller.signal, redirect: 'error',
       });
       const type = upstream.headers.get('content-type') || '';
@@ -61,7 +78,8 @@ export function createAuthProxy(options = {}) {
       }
       if (upstream.status < 300 && cache) {
         if (req.path === '/auth/logout' || req.path === '/auth/change-password') cache.invalidate(req.headers.cookie);
-        if (req.path.startsWith('/auth/users') && req.method !== 'GET') cache.clear(); // role/active may have changed
+        // a user's role/active flag may have changed (or the account was deleted): forget every cached session
+        if (/^\/admin\/users/.test(req.path) && req.method !== 'GET') cache.clear();
       }
       const setCookies = typeof upstream.headers.getSetCookie === 'function' ? upstream.headers.getSetCookie() : [];
       if (setCookies.length) res.append('Set-Cookie', setCookies);

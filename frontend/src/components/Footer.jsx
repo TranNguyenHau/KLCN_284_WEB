@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import {
   TrendingUp,
   BarChart3,
-  Newspaper,
   LineChart,
   ShieldCheck,
   MessageCircle,
@@ -64,16 +63,6 @@ const Footer = () => {
                 >
                   <LineChart className="h-4 w-4" />
                   Technical Analysis
-                </Link>
-              </li>
-
-              <li>
-                <Link
-                  to="/news"
-                  className="flex items-center gap-2 text-gray-400 transition hover:text-white"
-                >
-                  <Newspaper className="h-4 w-4" />
-                  Market News
                 </Link>
               </li>
 

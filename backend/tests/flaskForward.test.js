@@ -205,3 +205,14 @@ test('auth: 401, 403 and 429 from Flask are forwarded with status and bytes inta
     });
   }
 });
+
+test('model-performance (any signed-in user) is forwarded with ky_hieu and tap_du_lieu only, cookie included', async () => {
+  let seenHeaders;
+  await withStack((req, res) => { seenHeaders = req.headers; res.writeHead(200, FLASK_HEADERS); res.end('{"data":{"rows":[]},"error":null}'); },
+    async ({ flask, app }) => {
+      const r = await fetch(`${app.url}/api/model-performance?ky_hieu=FPT&tap_du_lieu=TEST&evil=1`, { headers: { Cookie: 'c=1' } });
+      assert.equal(r.status, 200);
+      assert.equal(flask.calls[0], '/api/model-performance?ky_hieu=FPT&tap_du_lieu=TEST');
+      assert.equal(seenHeaders.cookie, 'c=1');
+    });
+});

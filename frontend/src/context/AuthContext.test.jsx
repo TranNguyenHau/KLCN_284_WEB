@@ -124,7 +124,7 @@ describe('AuthProvider: actions', () => {
   });
 
   it('403 on an admin call rejects but keeps the session (the user is just not allowed)', async () => {
-    const { result } = setup({ 'GET /auth/me': ok(USER), 'GET /auth/users': httpError(403) });
+    const { result } = setup({ 'GET /auth/me': ok(USER), 'GET /admin/users': httpError(403) });
     await waitFor(() => expect(result.current.status).toBe('authenticated'));
     expect(await rejection(() => result.current.listUsers())).toMatchObject({ status: 403 });
     expect(result.current.status).toBe('authenticated');
@@ -195,6 +195,42 @@ describe('AuthProvider and the unauthorized event', () => {
     } finally {
       window.removeEventListener(AUTH_UNAUTHORIZED_EVENT, onEvent);
     }
+  });
+});
+
+describe('AuthProvider: administration calls', () => {
+  it('deleteUser, updateUser and listUsers use /admin/users; the model report picks the admin or the user endpoint', async () => {
+    const { result, client } = setup({
+      'GET /auth/me': ok(ADMIN), 'GET /admin/users': ok([]), 'DELETE /admin/users/5': ok({ ma_nguoi_dung: 5 }),
+      'PATCH /admin/users/5': ok({}), 'GET /admin/models/performance': ok({ rows: [] }), 'GET /model-performance': ok({ rows: [1] })
+    });
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+    await act(async () => {
+      await result.current.listUsers();
+      await result.current.updateUser(5, { ho_ten: 'X' });
+      expect(await result.current.deleteUser(5)).toEqual({ ma_nguoi_dung: 5 });
+      expect(await result.current.modelPerformance({ admin: true, params: { tap_du_lieu: 'VAL' } })).toEqual({ rows: [] });
+      expect(await result.current.modelPerformance()).toEqual({ rows: [1] });
+    });
+    expect(client.calls.map((c) => `${c.method} ${c.url}`).slice(1)).toEqual([
+      'GET /admin/users', 'PATCH /admin/users/5', 'DELETE /admin/users/5', 'GET /admin/models/performance', 'GET /model-performance'
+    ]);
+    expect(client.calls.find((c) => c.url === '/admin/models/performance').body).toEqual({ params: { tap_du_lieu: 'VAL' } });
+  });
+
+  it('a business-rule refusal keeps status 409 and the machine-readable reason on the error', async () => {
+    const { result } = setup({ 'GET /auth/me': ok(ADMIN), 'DELETE /admin/users/1': httpError(409, { reason: 'SELF_DELETE' }) });
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+    const error = await rejection(() => result.current.deleteUser(1));
+    expect(error).toMatchObject({ status: 409, reason: 'SELF_DELETE' });
+    expect(result.current.status).toBe('authenticated'); // a refusal is not a logout
+  });
+
+  it('401 on an admin call drops the session', async () => {
+    const { result } = setup({ 'GET /auth/me': ok(ADMIN), 'DELETE /admin/users/1': httpError(401) });
+    await waitFor(() => expect(result.current.status).toBe('authenticated'));
+    expect(await rejection(() => result.current.deleteUser(1))).toMatchObject({ status: 401 });
+    expect(result.current.status).toBe('anonymous');
   });
 });
 

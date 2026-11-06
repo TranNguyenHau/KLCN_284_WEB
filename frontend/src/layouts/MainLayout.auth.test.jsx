@@ -35,17 +35,22 @@ const mount = (me, extra = {}, opts = {}) => {
 const openMenu = async (name = 'Account menu') => fireEvent.click(await screen.findByRole('button', { name }));
 
 describe('MainLayout: role-based display', () => {
-  it('a plain user has no "Users" navigation entry', async () => {
+  it('a plain user has no administration entries but does get the read-only model performance page', async () => {
     mount(USER);
     await screen.findByRole('button', { name: 'Account menu' });
-    expect(screen.queryByRole('link', { name: 'Users' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'User management' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Model management' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Administration')).not.toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Dashboard' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Model performance' })).toHaveAttribute('href', '/models');
   });
 
-  it('an administrator gets the "Users" entry pointing at /users', async () => {
+  it('an administrator gets an Administration group with user and model management', async () => {
     mount(ADMIN);
-    const link = await screen.findByRole('link', { name: 'Users' });
-    expect(link).toHaveAttribute('href', '/users');
+    expect(await screen.findByRole('link', { name: 'User management' })).toHaveAttribute('href', '/admin/users');
+    expect(screen.getByRole('link', { name: 'Model management' })).toHaveAttribute('href', '/admin/models');
+    expect(screen.getByText('Administration')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Model performance' })).toHaveAttribute('href', '/models'); // shared page stays
   });
 
   it('the account menu shows the display name (or username) and the role', async () => {
@@ -89,6 +94,8 @@ describe('MainLayout: role-based display', () => {
     await openMenu('Menu tài khoản');
     expect(screen.getByRole('menuitem', { name: 'Đăng xuất' })).toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: 'Đổi mật khẩu' })).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Người dùng' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Quản lý người dùng' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Quản lý mô hình' })).toBeInTheDocument();
+    expect(screen.getByText('Quản trị')).toBeInTheDocument();
   });
 });

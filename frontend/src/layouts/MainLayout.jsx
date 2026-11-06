@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useMatch, useNavigate } from 'react-router-dom';
-import { Activity, ArrowLeftRight, Command as CommandIcon, KeyRound, LayoutDashboard, LogOut, Menu, Moon, Newspaper, PanelLeftClose, PanelLeftOpen, Search, Sun, User, Users, Wallet, X } from 'lucide-react';
+import { Activity, ArrowLeftRight, BarChart3, Command as CommandIcon, Gauge, KeyRound, LayoutDashboard, LogOut, Menu, Moon, PanelLeftClose, PanelLeftOpen, Search, Sun, User, Users, Wallet, X } from 'lucide-react';
 import AlphaChat from '../components/AlphaChat.jsx';
 import ChangePasswordDialog from '../components/ChangePasswordDialog.jsx';
 import CommandPalette from '../components/CommandPalette.jsx';
@@ -21,7 +21,7 @@ const GROUPS = [
     key: 'groupAnalysis',
     items: [
       { to: '/analysis/FPT', labelKey: 'nav.analysis', icon: Activity, match: '/analysis' },
-      { to: '/news', labelKey: 'nav.news', icon: Newspaper }
+      { to: '/models', labelKey: 'nav.models', icon: BarChart3 }
     ]
   },
   {
@@ -34,7 +34,13 @@ const GROUPS = [
 ];
 
 // Shown only to administrators. Hiding it is a convenience: the server rejects non-admins anyway.
-const ADMIN_GROUP = { key: 'groupAdmin', items: [{ to: '/users', labelKey: 'nav.users', icon: Users }] };
+const ADMIN_GROUP = {
+  key: 'groupAdmin',
+  items: [
+    { to: '/admin/users', labelKey: 'nav.adminUsers', icon: Users },
+    { to: '/admin/models', labelKey: 'nav.adminModels', icon: Gauge }
+  ]
+};
 
 function NavList({ collapsed }) {
   const { t } = useI18n();

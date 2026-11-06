@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import MainLayout from './layouts/MainLayout.jsx';
 import Dashboard from './pages/Dashboard.jsx';
@@ -7,10 +7,12 @@ import StockDetail from './pages/StockDetail.jsx';
 import TechnicalAnalysis from './pages/TechnicalAnalysis.jsx';
 import Portfolio from './pages/Portfolio.jsx';
 import Trading from './pages/Trading.jsx';
-import News from './pages/News.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
 import Users from './pages/Users.jsx';
+import AdminModels from './pages/AdminModels.jsx';
+import ModelPerformance from './pages/ModelPerformance.jsx';
+import AdminShell from './components/AdminShell.jsx';
 import ProtectedRoute, { AdminRoute } from './components/ProtectedRoute.jsx';
 
 export default function App() {
@@ -31,9 +33,17 @@ export default function App() {
             <Route path="analysis/:symbol" element={<TechnicalAnalysis />} />
             <Route path="portfolio" element={<Portfolio />} />
             <Route path="trading" element={<Trading />} />
-            <Route path="news" element={<News />} />
-            <Route element={<AdminRoute />}>
-              <Route path="users" element={<Users />} />
+            {/* Read-only model performance report for every signed-in user. */}
+            <Route path="models" element={<ModelPerformance />} />
+            {/* Old address kept alive. */}
+            <Route path="users" element={<Navigate to="/admin/users" replace />} />
+            {/* Administration area: admins only (AdminRoute here, and Flask answers 403 to everybody else). */}
+            <Route path="admin" element={<AdminRoute />}>
+              <Route element={<AdminShell />}>
+                <Route index element={<Navigate to="/admin/users" replace />} />
+                <Route path="users" element={<Users />} />
+                <Route path="models" element={<AdminModels />} />
+              </Route>
             </Route>
             {/* Unknown addresses get a real page: it lists the routes that are not built yet. */}
             <Route path="*" element={<NotFound />} />

@@ -4,7 +4,7 @@ import * as m from '../controllers/miscController.js';
 import * as e02 from '../controllers/e02Controller.js';
 import { config } from '../config.js';
 import { createFlaskForwarder } from './flaskForward.js';
-import { createAuthProxy } from './authProxy.js';
+import { ADMIN_ROUTES, createAuthProxy } from './authProxy.js';
 import { createAuthCache, createRequireAuth, requireCsrfHeader } from '../middleware/requireAuth.js';
 
 const router = Router();
@@ -20,6 +20,10 @@ router.use(createAuthProxy({ baseUrl: flaskOrigin, cache: authCache }));
 // Everything below needs a valid session (user or admin) and, for writes, the CSRF header.
 router.use(createRequireAuth({ baseUrl: flaskOrigin, cache: authCache }));
 router.use(requireCsrfHeader({ value: config.csrfHeaderValue }));
+
+// Admin area: user management and the model performance report. Mounted after the session check, and Flask
+// still enforces the admin role itself (401 / 403 pass through unchanged).
+router.use(createAuthProxy({ baseUrl: flaskOrigin, cache: authCache, routes: ADMIN_ROUTES, prefix: '/admin' }));
 
 // Read-only StockTrain E02 data from the existing Flask + PostgreSQL service.
 router.get('/e02/health', e02.health);

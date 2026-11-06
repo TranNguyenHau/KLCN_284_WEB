@@ -23,7 +23,6 @@ const LIVE = [
   { to: '/', labelKey: 'nav.dashboard' },
   { to: '/portfolio', labelKey: 'nav.portfolio' },
   { to: '/trading', labelKey: 'nav.trading' },
-  { to: '/news', labelKey: 'nav.news' },
   { to: '/analysis/FPT', labelKey: 'nav.analysis' }
 ];
 
