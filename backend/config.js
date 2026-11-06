@@ -9,6 +9,9 @@ if (corsOrigins.length === 0 || corsOrigins.includes('*')) {
 }
 
 export const config = {
+  mcpUrl: text(process.env.MCP_URL),
+  mcpAuthToken: text(process.env.MCP_AUTH_TOKEN),
+  chatDeadlineMs: 75000,
   port: Number(process.env.PORT) || 4000,
   mlServiceUrl: url(process.env.ML_SERVICE_URL, 'http://localhost:8000'),
   mlTimeoutMs: Number(process.env.ML_TIMEOUT_MS) || 60000,
