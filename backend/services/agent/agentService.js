@@ -21,7 +21,7 @@ const tests = [
   ['ranking', /xếp hạng|xep hang|rank/i], ['risk', /risk.?return|rủi ro.*lợi|rui ro.*loi/i],
   ['volatility', /volatility|biến động|bien dong/i], ['stored', /đã lưu|da luu|daily pipeline|du_doan/i],
   ['metrics', /backtest|metrics|r2|r²|độ chính xác/i], ['models', /mô hình nào|models|danh sách.*mô hình/i],
-  ['recent', /giá gần đây|recent prices/i], ['prediction', /predict|forecast|lstm|dự báo|du bao|dự đoán|du doan|phiên tới/i],
+  ['recent', /giá gần đây|recent prices/i], ['prediction', /predict|forecast|lstm|dự báo|du bao|dự đoán|du doan|xu hướng|xu huong|tăng hay giảm|tang hay giam|phiên tới/i],
   ['technical', /rsi|macd|bollinger|indicator|technical|chỉ báo|chi bao/i], ['news', /news|sentiment|tin tức|tin tuc/i],
   ['price', /price|quote|giá|gia\b/i], ['market', /market|vn-?index|thị trường|thi truong/i]
 ];
@@ -44,7 +44,8 @@ export function createAgent({ tool = runTool, stocks = listStocks, llm = generat
     };
     try {
       return await bounded(async (signal) => {
-        if (!symbol && !['ranking', 'models', 'market'].includes(intent)) {
+        if (!symbol && forecast) symbol = symbolList.find((s) => s === String(context.symbol || '').trim().toUpperCase()) || null;
+        if (!symbol && !forecast && !['ranking', 'models', 'market'].includes(intent)) {
           try {
             const listed = await bounded(() => stocks(), { signal, timeoutMs: 5000 });
             symbol = listed.find((s) => new RegExp(`\\b${s.symbol}\\b`, 'i').test(message))?.symbol || listed.find((s) => s.symbol === context.symbol)?.symbol;

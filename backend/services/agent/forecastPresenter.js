@@ -2,7 +2,7 @@ const models = ['LinearRegression', 'RandomForest', 'XGBoost', 'SVM (SVR)', 'LST
 const symbols = ['VNM', 'VCB', 'FPT', 'HPG', 'SSI'];
 const rows = (value) => Array.isArray(value) ? value.filter((x) => x && typeof x === 'object') : [];
 const date = (value) => /^\d{4}-\d{2}-\d{2}$/.test(String(value)) ? value : 'chưa xác định';
-const trend = (value) => ['UP', 'HOLD', 'DOWN'].includes(value) ? value : 'chưa xác định';
+const trend = (value) => value === 'SIDEWAYS' ? 'HOLD' : ['UP', 'HOLD', 'DOWN'].includes(value) ? value : 'chưa xác định';
 const percent = (value, scale = 1) => typeof value === 'number' && Number.isFinite(value) ? `${(value * scale).toFixed(4)}%` : 'chưa có';
 export const FORECAST_NOTICE = 'Đây là kết quả mô hình; R2 backtest nhiều trường hợp âm, không phải khuyến nghị đầu tư.';
 export const TRAINING_NOTICE = 'Các mô hình lợi suất E02 huấn luyện đến 2025-08-19; horizon 5 phiên.';
@@ -33,10 +33,20 @@ export function composeForecast(evidence) {
   if (evidence.riskReturn) {
     const p = evidence.riskReturn;
     out.push(`Nguồn: risk-return đã lưu (daily pipeline); ngày ${date(p.as_of)}; dữ liệu lợi suất/biến động ${p.aligned === true ? 'cùng ngày' : 'chưa đồng bộ, không suy luận kết hợp'}.`);
+    if (p.aligned !== true) out.push(({ AS_OF_MISMATCH: 'Lợi suất và biến động khác ngày.', E10_STALE: 'Dữ liệu biến động đã cũ.', NO_E10_PREDICTION: 'Chưa có dự báo biến động.', NO_E02_PREDICTION: 'Chưa có dự báo lợi suất.', E10_TABLE_NOT_FOUND: 'Chưa có dữ liệu biến động.' })[p.reason] || 'Chưa đủ dữ liệu đồng bộ để kết hợp lợi suất và biến động.');
     if (p.aligned === true && p.derived) out.push(`Trung vị lợi suất: ${percent(p.derived.return_median_pct)}; sigma 5 phiên: ${percent(p.derived.sigma_5d_pct)}.`);
   }
   if (evidence.volatility) {
-    for (const row of rows(evidence.volatility.predictions).slice(0, 5)) out.push(`Nguồn: biến động E10 đã lưu (daily pipeline); ngày ${date(row.as_of)}; sigma ngày ${percent(row.predicted_volatility, 100)}. Không cho biết chiều tăng/giảm; ${row.is_stale === true ? 'dữ liệu đã cũ' : 'cần xét độ mới dữ liệu'}.`);
+    for (const row of rows(evidence.volatility.predictions).slice(0, 5)) {
+      const value = typeof row.predicted_volatility === 'number' && Number.isFinite(row.predicted_volatility) && row.volatility_unit?.startsWith('daily_log_return_rms (fraction') ? `${(row.predicted_volatility * 100).toLocaleString('vi-VN', { maximumFractionDigits: 2 })}% mỗi ngày, chưa quy năm` : 'chưa xác định đơn vị';
+      out.push(`Nguồn: biến động E10 đã lưu (daily pipeline); as_of ${date(row.as_of)}; mức biến động dự báo ${value}. Đây là dự báo mức biến động, không phải chiều tăng/giảm; ${row.is_stale === true ? 'dữ liệu đã cũ' : row.is_stale === false ? 'dữ liệu chưa bị đánh dấu cũ' : 'chưa xác định độ mới dữ liệu'}.`);
+      if (Array.isArray(row.warnings) && row.warnings.length) {
+        out.push(`Có ${row.warnings.length} cảnh báo dữ liệu.`);
+        for (const warning of row.warnings.slice(0, 5)) {
+          if (warning?.code === 'CALENDAR_GAP') out.push(`Cảnh báo khoảng trống lịch giá: ${date(warning.from)} đến ${date(warning.to)}; chưa xác minh lịch giao dịch.`);
+        }
+      }
+    }
   }
   if (evidence.modelInfo) out.push(`MCP hiện có ${(Array.isArray(evidence.modelInfo.models_enabled) ? evidence.modelInfo.models_enabled : []).filter((x) => models.includes(x)).join(', ') || 'chưa có model'}; mã VNM, VCB, FPT, HPG, SSI.`);
   if (evidence.recentPrices) {
