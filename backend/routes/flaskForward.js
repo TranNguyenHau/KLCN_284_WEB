@@ -18,6 +18,8 @@ export const DEFAULT_ROUTES = Object.freeze([
   { path: '/volatility/latest', upstream: '/api/volatility/latest', params: ['symbol'] },
   { path: '/volatility/history', upstream: '/api/volatility/history', params: ['symbol', 'limit'] },
   { path: '/risk-return/latest', upstream: '/api/risk-return/latest', params: ['symbol'] },
+  // Read-only model performance report for any signed-in user (Flask: GET /api/model-performance).
+  { path: '/model-performance', upstream: '/api/model-performance', params: ['ky_hieu', 'tap_du_lieu'] },
 ]);
 
 // Statuses documented for the Flask E10 API; anything else is an upstream fault.
