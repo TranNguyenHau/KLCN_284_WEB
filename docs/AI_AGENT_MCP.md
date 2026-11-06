@@ -71,3 +71,22 @@ Lần rank cuối trả 5 mã và 5 nguồn postgres. SDK thật dùng Bearer th
 Chưa chạy kịch bản đăng nhập thật và câu hỏi trong trình duyệt; dừng chờ xác nhận. Các endpoint Flask đã lưu chưa kiểm tra bằng phiên người dùng thật trong lượt này.
 Frontend không thay đổi nên không chạy npm test frontend trong Bước 2.
 Npm audit báo 3 mục (body-parser, follow-redirects, qs); không tự cập nhật dependency ngoài phạm vi.
+
+
+## Sửa đường gọi dự báo đã lưu — 2026-11-06
+
+Tái hiện câu `HPG dự đoán biến động sắp tới`, context symbol FPT qua agent, dùng service tại HEAD trước sửa: agent chọn get_volatility_forecast với HPG nhưng request thật là GET `/api/volatility/latest`, query rỗng. Lỗi ở service bỏ sót symbol; risk-return có cùng lỗi. Dự báo du_doan trước đó đã truyền symbol đúng.
+
+Bằng chứng phiên đăng nhập do người dùng cung cấp: volatility/latest và risk-return/latest thiếu symbol trả 400; có symbol=HPG trả 200. Volatility có envelope count/meta/predictions; risk-return là đối tượng aligned/as_of/e02/e10/derived/reason; predictions/latest có count/predictions. History trả 200 với 2 dòng nhưng agent chỉ dùng latest. GET không yêu cầu CSRF hoặc X-Requested-With theo middleware Flask; cookie người gọi được chuyển tiếp qua request context.
+
+Sau sửa, request thật tới Flask 127.0.0.1:5012 gồm `/api/volatility/latest?symbol=HPG`, `/api/risk-return/latest?symbol=HPG`, `/api/predictions/latest?symbol=HPG`. Các lần tự chạy không có phiên nhận 401 với khóa data/error và thông báo quyền/phiên đúng. `/api/e02/predictions/latest` trên web là route proxy, Flask dùng `/api/predictions/latest`.
+
+Service kiểm tra schema riêng cho từng nguồn, phân biệt 400, 401/403, 5xx/kết nối, 200 rỗng và dữ liệu sai định dạng. Log chỉ chứa kind/path/symbol/status/reason đã lọc; không ghi body, cookie, token hoặc exception thô. Mã trong câu hỏi ưu tiên hơn ngữ cảnh trang; không có mã hợp lệ từ cả hai thì hỏi lại, không gọi tool. Các cách nói dự đoán/dự báo/xu hướng/tăng hay giảm chọn predict_stock; biến động vẫn ưu tiên E10.
+
+E10 hiển thị fraction thành phần trăm mỗi ngày, chưa quy năm, as_of, cờ cũ và cảnh báo. Cảnh báo chưa biết chỉ báo số lượng; CALENDAR_GAP hiển thị ngày an toàn, không chép chuỗi hướng dẫn tùy ý. Risk-return chỉ kết hợp khi aligned=true, hiển thị lý do cố định khi chưa aligned. Nhãn SIDEWAYS trong dữ liệu đã lưu được trình bày thành HOLD.
+
+Đơn vị giá gốc FPT close=52.9 là nghìn đồng theo kết quả phiên thật do người dùng cung cấp. Provider giữ metadata quy đổi; composer hiển thị `52,9 nghìn VND`. Nếu cấu hình multiplier=1000 thì hiển thị `52.900 VND`, không nhân lần hai; provider khác dùng VND giữ đơn vị của chúng.
+
+Kiểm thử thực chạy: `cd backend; node --test` đạt 98/98, fail 0, skipped 0 (3,920 giây). Gồm 27 test service mới, 10 test định tuyến/composer, 3 test đơn vị giá; các test MCP allowlist/injection/deadline và /api/chat không phiên trả 401 vẫn đạt. Mock HTTP chỉ dùng cookie giả; không truy cập hoặc ghi DB. Không đọc .env* trong các lệnh xác minh này.
+
+Chưa xác minh: câu trả lời web sau sửa bằng phiên đăng nhập thật; bằng chứng 200 trên phiên thật ở trên do người dùng cung cấp trước sửa. Không tuyên bố đã chạy lại MCP hoặc benchmark tải trong lượt sửa này. Không sửa frontend/auth, không push.
