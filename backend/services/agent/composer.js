@@ -29,7 +29,6 @@ export function composeReply({ symbol, evidence, failures = {}, language }) {
   const out = [];
   const q = evidence.price;
   const h = evidence.history;
-  const p = evidence.prediction;
   const t = evidence.technical;
   const s = evidence.sentiment;
 
@@ -56,20 +55,6 @@ export function composeReply({ symbol, evidence, failures = {}, language }) {
     out.push(`**${m.marketDataTitle}**\n${lines.join(' ')}`);
   }
 
-  if (p) {
-    const first = p.predictions[0];
-    const last = p.predictions.at(-1);
-    out.push(`**${m.predictionTitle}**\n${fill(m.prediction, {
-      first: money(first.predicted_price, lang),
-      firstDate: first.date,
-      last: money(last.predicted_price, lang),
-      lastDate: last.date,
-      days: p.days
-    })}`);
-  } else if (failures.prediction) {
-    out.push(`**${m.predictionTitle}**\n${fill(m.predictionUnavailable, { reason: failures.prediction })}`);
-  }
-
   if (t) {
     const items = t.signals.map((x) => {
       const vars = { name: indicatorName(m, x.indicator), state: stateWord(m, x.signal), detail: x.detail };
@@ -90,17 +75,11 @@ export function composeReply({ symbol, evidence, failures = {}, language }) {
   }
 
   const view = [];
-  if (p && q) {
-    const move = ((p.predictions.at(-1).predicted_price - q.price) / q.price) * 100;
-    const direction = move > 0.5 ? 'pointUp' : move < -0.5 ? 'pointDown' : 'pointFlat';
-    view.push(fill(m[direction], { move: signedPercent(move, lang) }));
-  }
   if (t) view.push(fill(m.pointIndicators, { bias: stateWord(m, t.bias) }));
   if (s) view.push(fill(m.pointNews, { label: sentimentWord(m, s.label) }));
 
   if (view.length) {
     const dirs = [];
-    if (p && q) dirs.push(Math.sign(p.predictions.at(-1).predicted_price - q.price));
     if (t) dirs.push(t.bias === 'bullish' ? 1 : t.bias === 'bearish' ? -1 : 0);
     if (s) dirs.push(s.label === 'positive' ? 1 : s.label === 'negative' ? -1 : 0);
     const agree = dirs.length > 1 && dirs.every((d) => d === dirs[0]);

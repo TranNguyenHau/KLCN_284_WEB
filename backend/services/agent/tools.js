@@ -1,3 +1,5 @@
+import { mcpClient, MCP_TOOLS } from '../mcpClient.js';
+import { getStoredForecast } from '../storedForecastService.js';
 import { getQuote, getFullHistory, getMarketOverview } from '../marketDataService.js';
 import { getPrediction } from '../predictionService.js';
 import { computeIndicators } from '../indicatorService.js';
@@ -57,10 +59,15 @@ export const TOOLS = {
   }
 };
 
-export async function runTool(name, args) {
+for (const name of MCP_TOOLS) TOOLS[name] = { description: `StockTrain MCP: ${name}`, run: (args, options) => mcpClient.call(name, args, options) };
+for (const [name, kind] of Object.entries({ get_stored_predictions: 'predictions', get_risk_return: 'riskReturn', get_volatility_forecast: 'volatility' })) {
+  TOOLS[name] = { description: 'Read-only daily pipeline data', run: ({ symbol }, options) => getStoredForecast(kind, symbol, options) };
+}
+
+export async function runTool(name, args, options = {}) {
   try {
-    return { tool: name, ok: true, data: await TOOLS[name].run(args) };
+    return { tool: name, ok: true, data: await (Object.hasOwn(TOOLS, name) ? TOOLS[name].run(args, options) : Promise.reject(new Error('Công cụ không được phép.'))) };
   } catch (err) {
-    return { tool: name, ok: false, error: { code: err.code || 'TOOL_ERROR', message: err.message } };
+    return { tool: name, ok: false, error: { code: err.code || 'TOOL_ERROR', message: name.startsWith('get_stored') || ['get_risk_return', 'get_volatility_forecast'].includes(name) ? 'Dự báo đã lưu hiện chưa sẵn sàng.' : err.message } };
   }
 }

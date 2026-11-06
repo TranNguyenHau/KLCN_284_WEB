@@ -60,9 +60,10 @@ function isAuthFailure(err) {
   return [400, 401, 403].includes(err.response?.status);
 }
 
-async function callGemini(model, transport, body) {
+async function callGemini(model, transport, body, signal) {
   const { data } = await axios.post(`${config.llmBaseUrl}/models/${model}:generateContent`, body, {
     ...transport,
+    signal,
     timeout: config.llmTimeoutMs
   });
   const candidate = data?.candidates?.[0];
@@ -76,15 +77,15 @@ async function callGemini(model, transport, body) {
 }
 
 const providers = {
-  openai: async ({ messages, language }) => {
+  openai: async ({ messages, language, signal }) => {
     const { data } = await axios.post(
       'https://api.openai.com/v1/chat/completions',
       { model: config.llmModel || 'gpt-4o-mini', temperature: 0.3, messages: [{ role: 'system', content: buildSystemPrompt(language) }, ...messages] },
-      { headers: { Authorization: `Bearer ${config.llmApiKey}` }, timeout: config.llmTimeoutMs }
+      { signal, headers: { Authorization: `Bearer ${config.llmApiKey}` }, timeout: config.llmTimeoutMs }
     );
     return data.choices[0].message.content;
   },
-  gemini: async ({ messages, language }) => {
+  gemini: async ({ messages, language, signal }) => {
     // Gemini rejects two consecutive turns with the same role. A failed request leaves the
     // question in the stored history, so a retry can put two user turns in a row; when that
     // happens the newer turn wins and the stale duplicate is dropped.
@@ -106,9 +107,10 @@ const providers = {
     let lastError = null;
 
     for (const model of models) {
+      if (signal?.aborted) throw new Error('Deadline exceeded');
       for (let i = 0; i < transports.length; i += 1) {
         try {
-          const reply = await callGemini(model, transports[i], body);
+          const reply = await callGemini(model, transports[i], body, signal);
           workingGeminiModel = model;
           return reply;
         } catch (err) {
@@ -137,5 +139,5 @@ export function llmName() {
  * @param options.language the interface language the user selected, which the answer must follow
  */
 export async function generate(messages, options = {}) {
-  return providers[config.llmProvider]({ messages, language: options.language });
+  return providers[config.llmProvider]({ messages, language: options.language, signal: options.signal });
 }
